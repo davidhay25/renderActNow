@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+
+    <title>Act-Now data</title>
+
+    <script src="js/libs/jquery-1.9.0.min.js"></script>
+    <script src="js/libs/angular.min1-5.js"></script>
+    <script src="js/libs/ui-bootstrap-tpls-2.0.1.min.js"></script>
+    <script src="js/libs/moment.min.js"></script>
+    <script src="js/libs/angular.min1-5.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/vis.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/main.css"/>
+
+    <script>
+        angular.module("anApp",['ui.bootstrap']).config(function($locationProvider) {
+
+            // enable html5Mode for pushstate ('#'-less URLs)
+            $locationProvider.html5Mode(true);
+            $locationProvider.hashPrefix('!');
+        });
+        angular.module("anApp").constant("moment", moment);
+
+    </script>
+
+    <script src="js/actnowCtrl.js"></script>
+    <script src="js/libs/vis.min.js"></script>
+    <script src="js/graphSvc.js"></script>
+
+    <style>
+        #graph {
+            width: 100%;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+
+        #medTimeline {
+            width: 100%;
+            height: 200px;
+            border: 1px solid lightgray;
+        }
+
+        .vis-item.red {
+            color: white;
+            background-color: red;
+            border-color: darkred;
+        }
+
+    </style>
+
+</head>
+
+
+<body style="padding: 8px;padding-top: 80px">
+
+    <div ng-app="anApp" ng-controller="actnowCtrl" class="container-fluid">
+
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+
+        <div class="container-fluid">
+            <div class="col-md-5">
+
+                    <span>
+                        <a class="navbar-brand" href="#">
+                            CanShare: ACT-Now data
+                        </a>
+                    </span>
+            </div>
+
+            <div class="col-md-2 col-sm-2">
+                <div class="navbar-text">
+
+
+
+
+                </div>
+
+            </div>
+
+            <div class="col-md-1 col-sm-1">
+                <div class="navbar-form navbar-left">
+                    <img ng-show="showWaiting" src="css/ajax_loader_blue_32.gif"/>
+
+                </div>
+            </div>
+
+            <div class="col-md-1 col-sm-1">
+
+            </div>
+
+            <div class="col-md-3 col-sm-3">
+
+
+            </div>
+        </div>
+    </nav>
+
+    <br/>
+
+
+        <div class="row">
+            <div class="col-md-3">
+                <select class="form-control" ng-model="input.selectedPatientId"
+                        ng-change="loadPatient(id)"
+                        ng-options = " id for id in allPatientIds"></select>
+            </div>
+            <div class="col-md-3">
+                <em>Represents a single regimen for a single patient. Contains multiple cycles for the regimen.</em>
+
+            </div>
+        </div>
+
+    <uib-tabset>
+
+        <uib-tab heading="Timeline">
+
+            <br/>
+            <div class="row">
+                <div class="col-md-8">
+                    <div id="medTimeline"></div>
+
+                </div>
+                <div class="col-md-4">
+                    <uib-tabset>
+                        <uib-tab heading="Med Admin">
+                            <pre>{{selectedTimeLineItem.MA | json}}</pre>
+                        </uib-tab>
+                        <uib-tab heading="Observations" ng-show = "selectedTimeLineItem.observations.length > 0">
+                            <div ng-repeat = "obs in selectedTimeLineItem.observations">
+                                <pre>{{obs | json}}</pre>
+                            </div>
+
+                        </uib-tab>
+                        <uib-tab heading="Json">
+                            <pre>{{selectedTimeLineItem | json}}</pre>
+                        </uib-tab>
+                    </uib-tabset>
+
+                </div>
+            </div>
+
+
+
+
+        </uib-tab>
+
+
+
+        <uib-tab heading="Full Graph">
+            <div class="row">
+                <div class="col-md-7">
+                    <div id="graph"></div>
+                </div>
+                <div class="col-md-5">
+                    <pre>{{selectedResource | json}}</pre>
+                </div>
+            </div>
+
+        </uib-tab>
+
+        <uib-tab heading="Cycles">
+
+            <div class="row">
+                <div class="col-md-8">
+                    <table class = 'table table-condensed table-bordered'>
+                        <tr><th>Num</th><th>Start</th><th>End</th><th>Length</th></tr>
+                        <tr ng-repeat = "cycle in arCycles">
+                            <td>
+                                <div class="clickable"
+                                     ng-click="selectThing(cycle)">
+                                    {{cycle.cycleNumber}}</div>
+                            </td>
+                            <td>{{cycle.period.start}}</td>
+                            <td>{{cycle.period.end}}</td>
+                            <td>{{cycle.length}}</td>
+
+                            <td>
+                                <!--
+                                <table class="table">
+                                    <tr ng-repeat="admin in cycle.admins">
+                                        <td>{{admin.drugName}}</td>
+                                    </tr>
+                                </table>
+                                -->
+
+                                <div ng-repeat="admin in cycle.admins">
+                                    {{admin.start | date : "MMM dd yyyy  h:mm"}}
+                                    <span class="clickable" ng-click="selectThing(admin)" >
+                                         {{admin.drugName}}</span> {{admin.dose}} {{admin.route}} over {{admin.length}} mins
+                                    <div style = "margin-left: 8px;color: red" ng-repeat = "adj in admin.adjust">
+                                        Dose adjusted: {{adj}}
+                                    </div>
+                                </div>
+
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-4">
+                    <div><em>?graph of resources with direct reference</em></div>
+                    <div ng-show="observations.length > 0">
+
+                        <strong>Observations</strong>
+                        <div ng-repeat = "obs in observations">
+                            {{obs.code.text}}:  {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}
+                        </div>
+                        <br/>
+                    </div>
+
+
+
+
+                    <div ng-show="input.selectedCycleThing">
+                        <strong>{{input.selectedCycleThing.resource.resourceType}}</strong>
+                        <pre>{{input.selectedCycleThing.resource | json}}</pre>
+                    </div>
+
+
+                </div>
+            </div>
+            <!--
+            <uib-tabset>
+                <uib-tab heading = "Table">
+
+
+                </uib-tab>
+                <uib-tab heading = "Graph">
+
+                </uib-tab>
+            </uib-tabset>
+
+-->
+
+
+        </uib-tab>
+
+
+        <uib-tab heading="Regimen details">
+
+            ?Add graph - TNM, observations
+
+            <div>
+                <em>pre & post regimen observations</em>
+            </div>
+
+            <div ng-repeat = "regimen in arRegimens">
+                <pre>{{regimen | json}}</pre>
+            </div>
+        </uib-tab>
+        <uib-tab heading="Medications">
+            left pane = list of drug types - right pane = administration date / does etc,
+
+        </uib-tab>
+
+
+        <uib-tab heading="Json">
+            <pre>{{allResourcesBundle | json}}</pre>
+        </uib-tab>
+    </uib-tabset>
+
+
+
+
+</div>
+
+</body>
+</html>
