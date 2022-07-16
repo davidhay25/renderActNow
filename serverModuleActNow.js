@@ -9,7 +9,7 @@ function setup(app,sr) {
     serverRoot = sr
 
 
-    app.get('/ds/fhir/Patient/:patientId/\[$]everything',async function(req,res){
+    app.get('/an/fhir/Patient/:patientId/\[$]everything',async function(req,res){
 
 
         let url = serverRoot + "Patient/" + req.params.patientId + "/$everything"
@@ -18,6 +18,59 @@ function setup(app,sr) {
         let bundle = await getBundle(url)
 
         res.json(bundle)
+    })
+
+
+    //get a summary of all Q from the forms server
+    app.get('/an/getQSummary',async function(req,res){
+        let url = "https://canshare.co.nz/ds/fhir/Questionnaire?_elements=url,title,name,description,extension"
+        let bundle = await getBundle(url)
+
+        res.json(bundle)
+    })
+
+
+    //get a single Q from the forms server
+    app.get('/an/getQ/:id',async function(req,res){
+        let url = "https://canshare.co.nz/ds/fhir/Questionnaire/" + req.params.id
+        let config = {headers:{Authorization:'dhay'}}
+
+        try {
+            results = await axios.get(url,config)  //should be a single resource
+            res.json(results.data)
+
+        } catch (ex) {
+            res.json(ex)
+        }
+    })
+
+    //get a summary of ann conditions by disease type. returns a hash keyed by disease
+    //todo this is quite inefficient and may not scale when all mosaic data is imported. If useful, have a better strategy -
+    //eg don't use getBundle() - incorporate paging in the query and save the results (Group or List) for
+    //re-use.
+    app.get('/an/getConditionSummary',async function(req,res){
+        let url = serverRoot + "Condition?_elements = code"
+        let results = await getBundle(url)
+        let hashUniqueDisease = {}          //
+        results.entry.forEach(function (entry) {
+            let resource = entry.resource
+            if (resource.code && resource.code.text) {
+                let diagnosis = resource.code.text.trim()      //should be code...
+
+                if (hashUniqueDisease[diagnosis]) {
+                    let cnt = hashUniqueDisease[diagnosis]
+
+                    hashUniqueDisease[diagnosis] = cnt + 1
+                } else {
+                    hashUniqueDisease[diagnosis] = 1
+                }
+
+
+            }
+
+        })
+
+        res.json(hashUniqueDisease)
     })
 
 

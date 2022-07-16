@@ -16,6 +16,9 @@
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css" href="css/main.css"/>
 
+    <link rel="stylesheet" type="text/css" href="css/jsTreeStyle.css"/>
+    <link rel="stylesheet" type="text/css" href="css/jsTreeThemes/proton/style.css"/>
+
     <script>
         angular.module("anApp",['ui.bootstrap']).config(function($locationProvider) {
 
@@ -29,7 +32,10 @@
 
     <script src="js/actnowCtrl.js"></script>
     <script src="js/libs/vis.min.js"></script>
-    <script src="js/graphSvc.js"></script>
+    <script src="js/anSvc.js"></script>
+    <script src="js/findStandardCtrl.js"></script>
+
+    <script src="js/libs/jstree.min.js"></script>
 
     <style>
         #graph {
@@ -40,13 +46,12 @@
 
         #medTimeline {
             width: 100%;
-            height: 200px;
-            border: 1px solid lightgray;
+
         }
 
         .vis-item.red {
             color: white;
-            background-color: red;
+            background-color: lightsalmon;
             border-color: darkred;
         }
 
@@ -103,20 +108,36 @@
 
 
         <div class="row">
+            <div class="col-md-1">
+                Regimen
+            </div>
             <div class="col-md-3">
                 <select class="form-control" ng-model="input.selectedPatientId"
                         ng-change="loadPatient(id)"
                         ng-options = " id for id in allPatientIds"></select>
             </div>
-            <div class="col-md-3">
-                <em>Represents a single regimen for a single patient. Contains multiple cycles for the regimen.</em>
+            <div class="col-md-2">
 
             </div>
+
+            <div class="col-md-3">
+                <div><strong>Condition</strong></div>
+                {{addressedCondition.code.text}}
+
+
+            </div>
+
+            <div class="col-md-3">
+                <em>List of associated Q - add/delete/edit</em>
+                <button class="btn btn-link" ng-click = "searchStandard()">Find Structured Path standard</button>
+
+            </div>
+
         </div>
 
     <uib-tabset>
 
-        <uib-tab heading="Timeline">
+        <uib-tab heading="Medications timeline">
 
             <br/>
             <div class="row">
@@ -127,9 +148,33 @@
                 <div class="col-md-4">
                     <uib-tabset>
                         <uib-tab heading="Med Admin">
+
+
+                            <br/>
+                            <strong>
+                                {{selectedTimeLineItem.MA.medicationCodeableConcept.text}}</strong>
+                            {{selectedTimeLineItem.MA.dosage.text}} {{selectedTimeLineItem.MA.dosage.route.text}}
+
+
+                            <br/> <br/>
+
                             <pre>{{selectedTimeLineItem.MA | json}}</pre>
                         </uib-tab>
-                        <uib-tab heading="Observations" ng-show = "selectedTimeLineItem.observations.length > 0">
+                        <uib-tab ng-show = "selectedTimeLineItem.observations.length > 0">
+
+                            <uib-tab-heading>
+                                Observations <span class="badge">{{selectedTimeLineItem.observations.length}}</span>
+                            </uib-tab-heading>
+
+
+                            <div ng-repeat = "obs in selectedTimeLineItem.observations">
+                                {{obs.code.text}}:  {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}
+                            </div>
+                            <br/>
+
+
+
+
                             <div ng-repeat = "obs in selectedTimeLineItem.observations">
                                 <pre>{{obs | json}}</pre>
                             </div>
@@ -148,8 +193,6 @@
 
         </uib-tab>
 
-
-
         <uib-tab heading="Full Graph">
             <div class="row">
                 <div class="col-md-7">
@@ -164,76 +207,79 @@
 
         <uib-tab heading="Cycles">
 
-            <div class="row">
-                <div class="col-md-8">
-                    <table class = 'table table-condensed table-bordered'>
-                        <tr><th>Num</th><th>Start</th><th>End</th><th>Length</th></tr>
-                        <tr ng-repeat = "cycle in arCycles">
-                            <td>
-                                <div class="clickable"
-                                     ng-click="selectThing(cycle)">
-                                    {{cycle.cycleNumber}}</div>
-                            </td>
-                            <td>{{cycle.period.start}}</td>
-                            <td>{{cycle.period.end}}</td>
-                            <td>{{cycle.length}}</td>
 
-                            <td>
-                                <!--
-                                <table class="table">
-                                    <tr ng-repeat="admin in cycle.admins">
-                                        <td>{{admin.drugName}}</td>
-                                    </tr>
-                                </table>
-                                -->
-
-                                <div ng-repeat="admin in cycle.admins">
-                                    {{admin.start | date : "MMM dd yyyy  h:mm"}}
-                                    <span class="clickable" ng-click="selectThing(admin)" >
-                                         {{admin.drugName}}</span> {{admin.dose}} {{admin.route}} over {{admin.length}} mins
-                                    <div style = "margin-left: 8px;color: red" ng-repeat = "adj in admin.adjust">
-                                        Dose adjusted: {{adj}}
-                                    </div>
-                                </div>
-
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="col-md-4">
-                    <div><em>?graph of resources with direct reference</em></div>
-                    <div ng-show="observations.length > 0">
-
-                        <strong>Observations</strong>
-                        <div ng-repeat = "obs in observations">
-                            {{obs.code.text}}:  {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}
-                        </div>
-                        <br/>
-                    </div>
-
-
-
-
-                    <div ng-show="input.selectedCycleThing">
-                        <strong>{{input.selectedCycleThing.resource.resourceType}}</strong>
-                        <pre>{{input.selectedCycleThing.resource | json}}</pre>
-                    </div>
-
-
-                </div>
-            </div>
-            <!--
             <uib-tabset>
                 <uib-tab heading = "Table">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <table class = 'table table-condensed table-bordered'>
+                                <tr><th>Num</th><th>Start</th><th>End</th><th>Length</th></tr>
+                                <tr ng-repeat = "cycle in arCycles">
+                                    <td>
+                                        <div class="clickable"
+                                             ng-click="selectThing(cycle)">
+                                            {{cycle.cycleNumber}}</div>
+                                    </td>
+                                    <td>{{cycle.period.start}}</td>
+                                    <td>{{cycle.period.end}}</td>
+                                    <td>{{cycle.length}}</td>
+
+                                    <td>
+                                        <!--
+                                        <table class="table">
+                                            <tr ng-repeat="admin in cycle.admins">
+                                                <td>{{admin.drugName}}</td>
+                                            </tr>
+                                        </table>
+                                        -->
+
+                                        <div ng-repeat="admin in cycle.admins">
+                                            {{admin.start | date : "MMM dd yyyy  h:mm"}}
+                                            <span class="clickable" ng-click="selectThing(admin)" >
+                                         {{admin.drugName}}</span> {{admin.dose}} {{admin.route}} over {{admin.length}} mins
+                                            <div style = "margin-left: 8px;color: red" ng-repeat = "adj in admin.adjust">
+                                                Dose adjusted: {{adj}}
+                                            </div>
+                                        </div>
+
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-4">
+                            <div><em>?graph of resources with direct reference</em></div>
+                            <div ng-show="observations.length > 0">
+
+                                <strong>Observations</strong>
+                                <div ng-repeat = "obs in observations">
+                                    {{obs.code.text}}:  {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}
+                                </div>
+                                <br/>
+                            </div>
+
+
+
+
+                            <div ng-show="input.selectedCycleThing">
+                                <strong>{{input.selectedCycleThing.resource.resourceType}}</strong>
+                                <pre>{{input.selectedCycleThing.resource | json}}</pre>
+                            </div>
+
+
+                        </div>
+                    </div>
+
 
 
                 </uib-tab>
                 <uib-tab heading = "Graph">
 
+                    <em>Graph of local references (in and out) to selected cycle (like bundle visualizer)</em>
+
                 </uib-tab>
             </uib-tabset>
 
--->
+
 
 
         </uib-tab>
@@ -241,7 +287,7 @@
 
         <uib-tab heading="Regimen details">
 
-            ?Add graph - TNM, observations
+          <em>Condition - </em>
 
             <div>
                 <em>pre & post regimen observations</em>
@@ -251,11 +297,76 @@
                 <pre>{{regimen | json}}</pre>
             </div>
         </uib-tab>
-        <uib-tab heading="Medications">
-            left pane = list of drug types - right pane = administration date / does etc,
+
+        <uib-tab heading="Observations">
+
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="list-group">
+                        <div ng-class="{'list-group-item':true}"
+                             ng-click="selectObservation(k)"
+                             ng-repeat = "(k,v) in hashAllObs">
+                            {{k}}
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-10">
+                    <uib-tabset>
+                        <uib-tab heading="Table">
+                            <div class="row">
+                                <div class ="col-md-6">
+                                    <table class="table table-bordered">
+                                        <tr ng-repeat = "obs in selectedObservationList">
+                                            <td>
+                                                <div class="clickable" ng-click="input.selectedObsFromTable = obs">
+                                                    {{obs.effectiveDateTime | date : "MMM dd yyyy  h:mm"}}</div>
+                                            </td>
+                                            <td>Age of test</td>
+                                            <td>{{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}</td>
+                                        </tr>
+
+
+                                    </table>
+
+                                </div>
+                                <div class ="col-md-6">
+                                    <pre>{{input.selectedObsFromTable | json}}</pre>
+                                </div>
+                            </div>
+
+<!--
+                            <pre>{{hashAllObs | json}}</pre>
+-->
+                        </uib-tab>
+                        <uib-tab heading="Chart">
+<em>From patient viewer</em>
+                        </uib-tab>
+                    </uib-tabset>
+
+                </div>
+            </div>
+
+
+
+
 
         </uib-tab>
 
+        <uib-tab heading="Structured Path integration">
+
+            <em>Q from SP - use public api. Search / associate. store reference in regimen careplan (an extension) </em>
+            <div><em>Much of search is not coded - eg general text or more specific - like by section text (ancillary)</em></div>
+
+            <div><em>Want 'ancillary studies' section - search for a section with 'ancillary' in the text</em></div>
+
+
+        </uib-tab>
+
+        <uib-tab heading="Resources by Type">
+            <em>Types to left, list in middle, details on right (like patient viewer)</em>
+
+        </uib-tab>
 
         <uib-tab heading="Json">
             <pre>{{allResourcesBundle | json}}</pre>

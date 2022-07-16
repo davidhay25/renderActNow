@@ -1,19 +1,21 @@
 
 angular.module("anApp")
     .controller('actnowCtrl',
-        function ($scope,$http,graphSvc) {
+        function ($scope,$http,$uibModal,anSvc) {
 
             $scope.input = {}
 
             let extCycleNumber = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-number"
             let extDoseAdjustReason = "http://clinfhir.com/fhir/StructureDefinition/canshare-dose-adjustment-reason"
 
+            //load all patients for dropdown select
             $http.get("/ds/fhir/Patient").then(
                 function(data) {
                     $scope.allPatientIds = []
                     data.data.entry.forEach(function(entry){
                         $scope.allPatientIds.push(entry.resource.id)
                     })
+
 //console.log($scope.allPatients)
                     $scope.input.selectedPatientId = $scope.allPatientIds[0]
                     //$scope.loadPatient($scope.allPatients[0].id)
@@ -22,7 +24,23 @@ angular.module("anApp")
 
                 })
 
-            //thing is an object with a .resource element
+
+
+
+            //locate a standard in actnow
+            $scope.searchStandard = function() {
+                $uibModal.open({
+                    backdrop: 'static',      //means can't close by clicking on the backdrop.
+                    keyboard: false,       //same as above.
+                    size : 'lg',
+                    templateUrl: 'modalTemplates/findStandard.html',
+                    controller: 'findStandardCtrl'
+                })
+
+            }
+
+
+            //thing is an object with a .resource element - from the cycles table tab
             $scope.selectThing = function(thing){
                 $scope.input.selectedCycleThing = thing
                 let resource = thing.resource
@@ -35,14 +53,19 @@ angular.module("anApp")
 
             }
 
+            //a particular observation code was selected todo: currently the text (form the csv file)
+            $scope.selectObservation = function(code) {
+                $scope.selectedObservationList = $scope.hashAllObs[code]
+
+            }
 
 
             $scope.loadPatient = function() {
                 $scope.showWaiting = true
                 let id = $scope.input.selectedPatientId
                 //console.log($scope.input.selectedPatientId)
-                console.log("Loading data for " + id)
-                let url1 = `/ds/fhir/Patient/${id}/$everything`
+                //console.log("Loading data for " + id)
+                let url1 = `/an/fhir/Patient/${id}/$everything`
                 $http.get(url1).then(
                     function(data) {
                         $scope.allResourcesBundle = data.data
@@ -78,17 +101,53 @@ angular.module("anApp")
 
                     if (resource.resourceType == 'CarePlan' && resource.category[0].coding[0].code == 'regimen') {
                         $scope.arRegimens.push(resource)
+
+                        //find the Condition that this regimen refers to.
+                        //todo when there are multiple regimens, this will need to change...
+                        findCondition(resource)
+
                     }
+
+
+
                 })
+            }
+
+            //find the condition associated with this regimen plan
+            //todo assume only 1 - is this correct?
+            function findCondition(regimen) {
+                delete $scope.addressedCondition
+                let conditionId     //the condition that this CP refers to in the .addresses element
+                if (regimen.addresses) {
+                    regimen.addresses.forEach(function (add) {
+                        let ref = add.reference
+                        let ar = ref.split('/')
+                        if (ar[0] == 'Condition') {
+                            conditionId = ar[1]
+                        }
+
+                    })
+                    $scope.allEntries.forEach(function (entry) {
+                        if (entry.resource.resourceType == 'Condition' && entry.resource.id == conditionId) {
+                            $scope.addressedCondition = entry.resource
+
+                        }
+                    })
+                }
+
+
             }
 
             //create an array to support a display of cycles. Also the hash of unique dates for the timeline..
             //and the hash of observations for a med (based on med id)
+            //and the hash of observations for an observation code
             function createCyclesArray() {
 
                 //first, create a hash of admins by cycle, and Observations by MA
                 let hashAdmin = {}
                 $scope.hashMedObs = {}
+                $scope.hashAllObs = {}          //all obs keyed bu code (description ATM)
+
                 $scope.uniqueMedAdminDate = {}      //a hash of all dates that an administration was given
                 $scope.allEntries.forEach(function (entry) {
                     let resource = entry.resource
@@ -121,17 +180,47 @@ angular.module("anApp")
                             break
 
                         case "Observation" :
+                            //update the all obs hash
+                            //todo ? look at category to exclude outcome Observations (or some other way)
+                            let key = resource.code.text      //todo - look at code
+
+                            if (key) {
+                                $scope.hashAllObs[key] = $scope.hashAllObs[key] || []
+                                $scope.hashAllObs[key].push(resource)
+                            }
+
+
+                            //if there's a partof then check what the reference is to...
                             if (resource.partOf) {
                                 resource.partOf.forEach(function (po) {
-                                    //todo - need to see what the part of references - could be a careplan
+
                                     let ref = po.reference
-                                    $scope.hashMedObs[ref] = hashAdmin[ref] || []
-                                    $scope.hashMedObs[ref].push(resource)
+                                    let ar = ref.split('/')
+                                    if (ar[0] == 'MedicationAdministration') {
+                                        $scope.hashMedObs[ref] = hashAdmin[ref] || []
+                                        $scope.hashMedObs[ref].push(resource)
+                                    }
+
+
+
+
                                 })
                             }
                             break
                     }
 
+                })
+
+                //sort the hashAllObs bu date
+                Object.keys($scope.hashAllObs).forEach(function (key) {
+                    $scope.hashAllObs[key].sort(function(a,b) {
+                        if (a.effectiveDateTime > b.effectiveDateTime) {
+                            return 1
+                        } else {
+                            return -1
+                        }
+                        }
+                    )
                 })
 
                 //now create the cycles
@@ -348,7 +437,7 @@ angular.module("anApp")
 
             function createGraph(arResources) {
 
-                    let vo = graphSvc.makeGraph({arResources: arResources})  //actually entries...
+                    let vo = anSvc.makeGraph({arResources: arResources})  //actually entries...
 
                     let container = document.getElementById('graph');
                     let graphOptions = {

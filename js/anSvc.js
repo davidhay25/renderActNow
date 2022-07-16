@@ -1,6 +1,6 @@
 angular.module("anApp")
 
-    .service('graphSvc', function($filter) {
+    .service('anSvc', function($filter) {
 
         var objColours ={};
         objColours.Patient = '#93FF1A';
@@ -35,6 +35,136 @@ angular.module("anApp")
 
 
         return {
+
+            getMetaInfoForItem : function() {
+                return  {}
+            },
+
+            makeTreeFromQ : function (Q,options) {
+                //specifically 3 levels. Not recursive
+                //levels root, section, child, grandchild
+                options = options || {}     //display options - not currently used...
+                let hashEnableWhen = {} //key is the element with EW set, value is the item they are dependant on
+                let that = this
+                //let extUrl = "http://clinfhir.com/structureDefinition/q-item-description"
+                let treeData = []
+                let hash = {}
+                let root = {id:'root',text:'Root',parent:'#',state:{},data:{level:'root'}}
+                treeData.push(root)
+
+                if (Q.item) {
+                    Q.item.forEach(function(sectionItem){
+                        //each top level item is a section
+                        let item = {id: sectionItem.linkId,state:{},data:{}}
+                        item.text = sectionItem.text //+ " " + treeData.length;
+                        item.parent = "root";
+                        item.icon = "icons/icon-qi-horizontal.png"
+                        let meta = that.getMetaInfoForItem(sectionItem)
+                        item.data = {item:sectionItem,level:'section',meta:meta}
+
+                        item.answerValueSet = sectionItem.answerValueSet
+                        // why do I need this?item.data.description = getDescription(parentItem)
+
+                        hash[item.id] = item.data;
+                        treeData.push(item)
+
+                        //second layer - contents of each section
+                        if (sectionItem.item) {
+                            sectionItem.item.forEach(function (child,childInx) {
+                                let item = {id: child.linkId,state:{},data:{}}
+                                item.text = child.text || child.linkId //+ " " + treeData.length;
+                                item.parent = sectionItem.linkId;
+                                let meta = that.getMetaInfoForItem(child)
+                                item.data = {item:child,level:'child',meta:meta,parentItem : sectionItem, parentItemInx:childInx} //child
+
+                                let iconFile = "icons/icon-q-" + child.type + ".png"
+                                item.icon = iconFile
+
+
+
+                                hash[item.id] = item.data;
+                                treeData.push(item)
+                                // not sure what this was checkEnableWhen(child)
+
+                                //third level - the contents of a group...
+                                if (child.item) {
+                                    child.item.forEach(function (grandchild) {
+                                        let item = {id: grandchild.linkId, state: {}, data: {}}
+                                        item.text = grandchild.text || grandchild.linkId//+ " " + treeData.length;
+                                        item.parent = child.linkId;
+
+                                        let iconFile = "icons/icon-q-" + grandchild.type + ".png"
+                                        item.icon = iconFile
+
+                                        //item.icon = "icons/icon_q_item.png"
+                                        let meta = that.getMetaInfoForItem(grandchild)
+                                        item.data = {item: grandchild, level: 'grandchild', meta:meta} //child
+
+                                        hash[grandchild.id] = grandchild.data;
+                                        treeData.push(item)
+                                        // not sure why this wascheckEnableWhen(grandchild)
+                                    })
+                                }
+
+                            })
+
+                        }
+
+                    })
+                }
+
+
+
+                /*
+                //adjust the parent of all 'enableWhen' - todo is this the best visualization? - not in the editor
+                treeData.forEach(function (item){
+                    if (hashEnableWhen[item.id]) {
+                        item.parent = hashEnableWhen[item.id]
+                    }
+                })
+*/
+
+                return {treeData : treeData,hash:hash}
+
+
+                function checkEnableWhenDEP(item) {
+                    if (item.enableWhen) {
+                        hashEnableWhen[item.linkId] = item.enableWhen[0].question
+                    }
+                }
+
+
+                function getDescriptionDEP(item) {
+                    //let extUrl = "http://clinfhir.com/structureDefinition/q-item-description"
+                    let v = ""
+                    if (item.extension) {
+                        item.extension.forEach(function (ext) {
+                            if (ext.url == extDescription ) {
+
+                                v = ext.valueString
+                            }
+                        })
+                    }
+                    return v
+                }
+
+                function makeMultDEP(item) {
+                    let mult = ""
+                    if (item.required) {
+                        mult = "1.."
+                    } else {
+                        mult = "0.."
+                    }
+
+                    if (item.repeats) {
+                        mult += "*"
+                    } else {
+                        mult += "1"
+                    }
+                    return mult
+                }
+
+            },
 
             //note that this has customizations for act now
             makeGraph: function (options) {

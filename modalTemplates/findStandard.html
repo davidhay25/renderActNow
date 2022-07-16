@@ -1,0 +1,85 @@
+
+<div>
+  <div class="modal-header">
+
+    <div class="row">
+      <div class="col-md-6 col-sm-6 ">
+
+        <h3>Find Structured Path standard</h3>
+
+      </div>
+
+      <div class="col-md-1 col-sm-1">
+        <div class="navbar-form navbar-left">
+          <img ng-show="showWaiting" src="css/ajax_loader_blue_32.gif"/>
+
+        </div>
+      </div>
+
+      <div class="col-md-5 col-sm-5">
+        <button class="btn btn-primary pull-right"
+                ng-show="selectedQ"
+                ng-click="select()">Select</button>
+        <button class="btn btn-link pull-right" ng-click="$dismiss()">Cancel</button>
+
+      </div>
+
+    </div>
+
+  </div>
+  <div class="modal-body">
+
+
+
+    <div class="row" >
+      <div class="col-sm-2 col-md-2">
+        Tags:
+      </div>
+      <div class="col-sm-2 col-md-2">
+        <select class="form-control" ng-model="input.selectedTag"
+                ng-change = "selectTag(input.selectedTag)"
+                ng-options = "k for (k,v) in hashQByTag"></select>
+      </div>
+      <div class="col-sm-2 col-md-2">
+      </div>
+
+    </div>
+
+  <br/>
+    <div class="row">
+
+
+      <div class="col-sm-6 col-md-6">
+
+            <table class="table table-bordered">
+              <tr><th>Title</th><th>Description</th></tr>
+              <tr ng-repeat = "Q in input.QforSelectedTag">
+                <td>
+                  <div class="clickable" ng-click="selectQ(Q)">{{Q.title}}</div>
+                </td>
+                <td>{{Q.description}}</td>
+              <!--  <td><div class="clickable" ng-click="selectQ(Q)">Details</div> </td>-->
+              </tr>
+            </table>
+
+
+
+
+      </div>
+
+      <div class="col-sm-6 col-md-6">
+        <div class="banner">{{selectedQ.title}}</div>
+
+        <div id="designTree"></div>
+      </div>
+
+    </div>
+<!--
+    <pre>{{selectedQ | json}}</pre>
+-->
+  </div>
+
+  <div class="modal-header">
+
+  </div>
+</div>
