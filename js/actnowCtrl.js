@@ -4,6 +4,8 @@ angular.module("anApp")
         function ($scope,$http,$uibModal,anSvc) {
 
             $scope.input = {}
+            //$scope.moment = moment
+            $scope.anSvc = anSvc
 
             let extCycleNumber = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-number"
             let extDoseAdjustReason = "http://clinfhir.com/fhir/StructureDefinition/canshare-dose-adjustment-reason"
@@ -16,14 +18,36 @@ angular.module("anApp")
                         $scope.allPatientIds.push(entry.resource.id)
                     })
 
-//console.log($scope.allPatients)
-                    $scope.input.selectedPatientId = $scope.allPatientIds[0]
-                    //$scope.loadPatient($scope.allPatients[0].id)
 
-                    //$scope.loadPatient("4121-48770")
+                    $scope.input.selectedPatientId = $scope.allPatientIds[0]
+
 
                 })
 
+            //select patient on diagnosis
+            $scope.selectByDx = function() {
+                $uibModal.open({
+                    backdrop: 'static',      //means can't close by clicking on the backdrop.
+                    keyboard: false,       //same as above.
+                    size : 'lg',
+                    templateUrl: 'modalTemplates/selectByDx.html',
+                    controller: 'selectByDxCtrl'
+                }).result.then(
+
+                    function (regimen) {
+                        //pass back the regimen. We cal select the patient as the id's are the same (though could get the patient id from the subject if we need....)
+
+                        $scope.input.selectedPatientId = regimen.id
+                        //set the dropdown of patient ids - todo won't scale!
+                    //    $scope.allPatientIds.forEach(function (id) {
+
+
+                      //  })
+
+                        $scope.loadPatient(regimen.id)
+                    })
+
+            }
 
 
 
@@ -50,19 +74,18 @@ angular.module("anApp")
 
                 $scope.observations = $scope.hashMedObs[refKey]
 
-
             }
 
             //a particular observation code was selected todo: currently the text (form the csv file)
             $scope.selectObservation = function(code) {
+                $scope.selectedObservationCode = code
                 $scope.selectedObservationList = $scope.hashAllObs[code]
-
             }
 
 
-            $scope.loadPatient = function() {
+            $scope.loadPatient = function(id) {
                 $scope.showWaiting = true
-                let id = $scope.input.selectedPatientId
+                //let id = $scope.input.selectedPatientId
                 //console.log($scope.input.selectedPatientId)
                 //console.log("Loading data for " + id)
                 let url1 = `/an/fhir/Patient/${id}/$everything`
@@ -77,8 +100,9 @@ angular.module("anApp")
                                 $scope.allEntries.push(entry)
                             }
                         })
-                        createRegimensArray()
-                        createCyclesArray()
+                        createCyclesArray()     //and hashAllObsById
+                        createRegimensArray()       //must come after createCyst
+
                         createGraph($scope.allEntries)
 
                         createTimeLine($scope.uniqueMedAdminDate,$scope.hashMedObs)
@@ -100,8 +124,21 @@ angular.module("anApp")
                     let resource = entry.resource
 
                     if (resource.resourceType == 'CarePlan' && resource.category[0].coding[0].code == 'regimen') {
-                        $scope.arRegimens.push(resource)
 
+
+                        let vo = {resource:resource,supportingInfo:[]}
+                        if (resource.supportingInfo) {
+                            resource.supportingInfo.forEach(function(si){
+                                vo.supportingInfo.push($scope.hashAllObsById[si.reference])
+                               // let ar = si.
+                            })
+                        }
+
+                        //now add all the Observations that refer to this CP via a 'basedOn link
+                        //todo - haven't got any yet
+
+
+                        $scope.arRegimens.push(vo)
                         //find the Condition that this regimen refers to.
                         //todo when there are multiple regimens, this will need to change...
                         findCondition(resource)
@@ -146,7 +183,8 @@ angular.module("anApp")
                 //first, create a hash of admins by cycle, and Observations by MA
                 let hashAdmin = {}
                 $scope.hashMedObs = {}
-                $scope.hashAllObs = {}          //all obs keyed bu code (description ATM)
+                $scope.hashAllObs = {}          //all obs keyed by code (description ATM) - for all Observations array
+                $scope.hashAllObsById = {}
 
                 $scope.uniqueMedAdminDate = {}      //a hash of all dates that an administration was given
                 $scope.allEntries.forEach(function (entry) {
@@ -180,6 +218,8 @@ angular.module("anApp")
                             break
 
                         case "Observation" :
+
+                            $scope.hashAllObsById["Observation/"+resource.id] =  resource   //to allow lookup by reference
                             //update the all obs hash
                             //todo ? look at category to exclude outcome Observations (or some other way)
                             let key = resource.code.text      //todo - look at code

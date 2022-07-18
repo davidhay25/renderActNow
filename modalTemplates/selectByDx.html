@@ -1,0 +1,66 @@
+
+<div>
+  <div class="modal-header">
+
+    <div class="row">
+      <div class="col-md-6 col-sm-6 ">
+
+        <h3>Select on Diagnosis</h3>
+
+      </div>
+
+      <div class="col-md-1 col-sm-1">
+        <div class="navbar-form navbar-left">
+          <img ng-show="showWaiting" src="css/ajax_loader_blue_32.gif"/>
+
+        </div>
+      </div>
+
+      <div class="col-md-5 col-sm-5">
+        <button class="btn btn-primary pull-right"
+                ng-show="selectedQ"
+                ng-click="select()">Select</button>
+        <button class="btn btn-link pull-right" ng-click="$dismiss()">Cancel</button>
+
+      </div>
+
+    </div>
+
+  </div>
+  <div class="modal-body">
+
+
+
+    <div class="row" >
+      <div class="col-sm-6 col-md-6">
+        <div class="list-group">
+          <div ng-class="{'list-group-item':true,listItemSelected : selectedDx == dx}" style = "cursor: pointer"
+               ng-click="findPlansWithCode(dx)" ng-repeat = "dx in allDx">
+            {{dx.display}} <span class="badge pull-right">{{dx.cnt}}</span>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-md-6">
+          <table class="table-bordered table">
+            <tr ng-repeat = "cp in arRegimens">
+              <td>{{cp.title}}</td>
+              <td>{{cp.id}}</td>
+              <td><div class="clickable" ng-click="selectRegimen(cp)">Select</div> </td>
+            </tr>
+          </table>
+      </div>
+
+    </div>
+
+
+
+  <br/>
+
+  </div>
+
+  <div class="modal-header">
+
+  </div>
+</div>

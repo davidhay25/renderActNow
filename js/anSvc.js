@@ -36,6 +36,18 @@ angular.module("anApp")
 
         return {
 
+            getSingleExtension : function(resource,url,type) {
+                let result
+                if (resource && resource.extension && url) {
+                    resource.extension.forEach(function(ext){
+                        if (ext.url == url) {
+                            result = ext['value'+type]
+                        }
+                    })
+                }
+                return result
+            },
+
             getMetaInfoForItem : function() {
                 return  {}
             },

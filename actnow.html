@@ -36,6 +36,8 @@
     <script src="js/findStandardCtrl.js"></script>
 
     <script src="js/libs/jstree.min.js"></script>
+    <script src="js/selectByDxCtrl.js"></script>
+    <script src="js/filters.js"></script>
 
     <style>
         #graph {
@@ -109,14 +111,19 @@
 
         <div class="row">
             <div class="col-md-1">
-                Regimen
+                Patient
             </div>
-            <div class="col-md-3">
+
+
+
+            <div class="col-md-2">
                 <select class="form-control" ng-model="input.selectedPatientId"
-                        ng-change="loadPatient(id)"
+                        ng-change="loadPatient(input.selectedPatientId)"
                         ng-options = " id for id in allPatientIds"></select>
             </div>
+
             <div class="col-md-2">
+                <button class="btn btn-link" ng-click="selectByDx()">Select by Dx</button>
 
             </div>
 
@@ -155,8 +162,21 @@
                                 {{selectedTimeLineItem.MA.medicationCodeableConcept.text}}</strong>
                             {{selectedTimeLineItem.MA.dosage.text}} {{selectedTimeLineItem.MA.dosage.route.text}}
 
+                            <div ng-repeat = "obs in selectedTimeLineItem.observations">
+                                {{obs.code.text}}:  {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}
+                            </div>
 
                             <br/> <br/>
+
+                            <div ng-show="selectedTimeLineItem.observations.count > 0">
+                                <div ng-repeat = "obs in selectedTimeLineItem.observations">
+                                    {{obs.code.text}}:  {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}
+                                </div>
+                                <br/>
+                            </div>
+
+
+
 
                             <pre>{{selectedTimeLineItem.MA | json}}</pre>
                         </uib-tab>
@@ -193,17 +213,6 @@
 
         </uib-tab>
 
-        <uib-tab heading="Full Graph">
-            <div class="row">
-                <div class="col-md-7">
-                    <div id="graph"></div>
-                </div>
-                <div class="col-md-5">
-                    <pre>{{selectedResource | json}}</pre>
-                </div>
-            </div>
-
-        </uib-tab>
 
         <uib-tab heading="Cycles">
 
@@ -284,6 +293,18 @@
 
         </uib-tab>
 
+        <uib-tab heading="Full Graph">
+            <div class="row">
+                <div class="col-md-7">
+                    <div id="graph"></div>
+                </div>
+                <div class="col-md-5">
+                    <pre>{{selectedResource | json}}</pre>
+                </div>
+            </div>
+
+        </uib-tab>
+
 
         <uib-tab heading="Regimen details">
 
@@ -293,8 +314,72 @@
                 <em>pre & post regimen observations</em>
             </div>
 
+
             <div ng-repeat = "regimen in arRegimens">
-                <pre>{{regimen | json}}</pre>
+
+                <uib-tabset>
+                    <uib-tab heading = "Display">
+                        <br/>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        Title
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="rounded-box">{{regimen.resource.title}}</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        Purpose
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="rounded-box">
+                                            {{anSvc.getSingleExtension(regimen.resource,"http://canshare.co.nz/fhir/StructureDefinition/tx-intent","CodeableConcept").text}}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        Period
+                                    </div>
+                                    <div class="col-md-9">
+                                        <div class="rounded-box">
+                                            {{regimen.resource.period.start}} to {{regimen.resource.period.end }}
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                            </div>
+                            <div class="col-md-4">
+
+                                <strong>Supporting Info</strong>
+                                <div class="list-group">
+                                    <div class="list-group-item"
+                                         ng-click = "input.obsFromRegimenView = obs"
+                                         ng-repeat = "obs in regimen.supportingInfo">
+                                     <!--   {{obs | json}} -->
+                                        {{obs.code.text}}:  {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}} {{obs.valueString}}
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="col-md-4">
+                                <pre>{{input.obsFromRegimenView | json}}</pre>
+                            </div>
+                        </div>
+
+                    </uib-tab>
+                    <uib-tab heading = "Json">
+                        <pre>{{regimen.resource | json}}</pre>
+                    </uib-tab>
+                </uib-tabset>
+
+
             </div>
         </uib-tab>
 
@@ -303,7 +388,8 @@
             <div class="row">
                 <div class="col-md-2">
                     <div class="list-group">
-                        <div ng-class="{'list-group-item':true}"
+                        <div ng-class="{'list-group-item':true,listItemSelected: k == selectedObservationCode}"
+                             style="cursor: pointer"
                              ng-click="selectObservation(k)"
                              ng-repeat = "(k,v) in hashAllObs">
                             {{k}}
@@ -317,13 +403,21 @@
                             <div class="row">
                                 <div class ="col-md-6">
                                     <table class="table table-bordered">
+                                        <tr><th>Date</th><th>Age</th><th>Value</th></tr>
                                         <tr ng-repeat = "obs in selectedObservationList">
+
                                             <td>
                                                 <div class="clickable" ng-click="input.selectedObsFromTable = obs">
                                                     {{obs.effectiveDateTime | date : "MMM dd yyyy  h:mm"}}</div>
                                             </td>
-                                            <td>Age of test</td>
-                                            <td>{{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}</td>
+                                            <td>
+                                                {{obs.effectiveDateTime | age}}
+
+                                            </td>
+                                            <td>
+                                                {{obs.valueString}}
+                                                {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}}
+                                            </td>
                                         </tr>
 
 

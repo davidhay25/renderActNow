@@ -29,6 +29,20 @@ function setup(app,sr) {
         res.json(bundle)
     })
 
+    //get all careplans with en 'addresses reference to a conditions with a given code
+    app.get('/an/getCarePlansWithCode/:code',async function(req,res){
+        let url = serverRoot + "CarePlan?condition.code="+ req.params.code
+
+console.log(url)
+        let config = {headers:{Authorization:'dhay'}}
+        try {
+            results = await axios.get(url,config)  //should be a single resource
+            res.json(results.data)
+
+        } catch (ex) {
+            res.json(ex)
+        }
+    })
 
     //get a single Q from the forms server
     app.get('/an/getQ/:id',async function(req,res){
@@ -44,8 +58,10 @@ function setup(app,sr) {
         }
     })
 
-    //get a summary of ann conditions by disease type. returns a hash keyed by disease
-    //todo this is quite inefficient and may not scale when all mosaic data is imported. If useful, have a better strategy -
+
+
+    //get a summary of ann conditions by disease type from the local server. returns a hash keyed by disease
+    //todo this is quite inefficient and will not scale when all mosaic data is imported. If useful, have a better strategy -
     //eg don't use getBundle() - incorporate paging in the query and save the results (Group or List) for
     //re-use.
     app.get('/an/getConditionSummary',async function(req,res){
@@ -55,16 +71,24 @@ function setup(app,sr) {
         results.entry.forEach(function (entry) {
             let resource = entry.resource
             if (resource.code && resource.code.text) {
-                let diagnosis = resource.code.text.trim()      //should be code...
+                let diagnosisText = resource.code.text.trim()      //should be code...
 
-                if (hashUniqueDisease[diagnosis]) {
-                    let cnt = hashUniqueDisease[diagnosis]
-
-                    hashUniqueDisease[diagnosis] = cnt + 1
+                let diagnosisCode = "unknown"
+                if (resource.code.coding) {
+                    diagnosisCode = resource.code.coding[0].code.trim()
                 } else {
-                    hashUniqueDisease[diagnosis] = 1
+                   // diagnosisCode = diagnosisText
                 }
 
+
+
+                if (hashUniqueDisease[diagnosisCode]) {
+                    let cnt = hashUniqueDisease[diagnosisCode].cnt
+
+                    hashUniqueDisease[diagnosisCode].cnt = cnt + 1
+                } else {
+                    hashUniqueDisease[diagnosisCode] = {cnt:1,code:diagnosisCode,display:diagnosisText}
+                }
 
             }
 
