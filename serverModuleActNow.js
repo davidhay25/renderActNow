@@ -187,8 +187,23 @@ console.log(url)
 */
     })
 
+/*
+    //the Patient/$everything operation
+    app.get('/ds/fhir/Patient/:id/\[$]everything',async function(req,res){
+        let url = `${serverRoot}Patient/${req.params.id}/$everything`
+        //let url = serverRoot + "Patient/" + req.params.id + "/$everything"
+        try {
+            results = await axios.get(url)
+            res.json(results.data)
+        } catch (ex) {
+            res.status(500).json({msg:ex.message,url:url})
+        }
 
 
+
+    })
+
+    */
 
     function getNextPageUrl(bundle) {
         //console.log('gm' + bundle.resourceType)

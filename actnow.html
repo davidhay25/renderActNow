@@ -57,6 +57,17 @@
             border-color: darkred;
         }
 
+        .vis-item.rx {
+            color: white;
+            background-color: #cc9900;
+            border-color: darkred;
+        }
+
+        .scroll {
+            height: 800px;
+            overflow-y: scroll;
+        }
+
     </style>
 
 </head>
@@ -153,13 +164,20 @@
 
                 </div>
                 <div class="col-md-4">
-                    <uib-tabset>
-                        <uib-tab heading="Med Admin">
+                    <uib-tabset ng-show = "selectedTimeLineItem.MA ||selectedTimeLineItem.rx">
+                        <uib-tab>
+                            <uib-tab-heading>
+                                <div ng-show = "selectedTimeLineItem.MA">Med Admin</div>
+                                <div ng-show = "selectedTimeLineItem.rx">Med Request</div>
 
+                            </uib-tab-heading>
 
                             <br/>
                             <strong>
-                                {{selectedTimeLineItem.MA.medicationCodeableConcept.text}}</strong>
+                                {{selectedTimeLineItem.MA.medicationCodeableConcept.text}}
+                                {{selectedTimeLineItem.rx.medicationCodeableConcept.text}}
+                            </strong>
+
                             {{selectedTimeLineItem.MA.dosage.text}} {{selectedTimeLineItem.MA.dosage.route.text}}
 
                             <div ng-repeat = "obs in selectedTimeLineItem.observations">
@@ -177,9 +195,21 @@
 
 
 
+                            <pre ng-show="selectedTimeLineItem.rx">{{selectedTimeLineItem.rx | json}}</pre>
 
-                            <pre>{{selectedTimeLineItem.MA | json}}</pre>
+
+                            <pre selectedTimeLineItem.MA>{{selectedTimeLineItem.MA | json}}</pre>
+
+
                         </uib-tab>
+
+<!--
+                        <uib-tab ng-show = "selectedTimeLineItem.rx"  heading="Med Request">
+                            <pre>{{selectedTimeLineItem.rx | json}}</pre>
+
+                        </uib-tab>
+                        -->
+
                         <uib-tab ng-show = "selectedTimeLineItem.observations.length > 0">
 
                             <uib-tab-heading>
@@ -215,7 +245,7 @@
 
 
         <uib-tab heading="Cycles">
-
+            <em>todo - add observations (moved from MA)</em>
 
             <uib-tabset>
                 <uib-tab heading = "Table">
@@ -224,6 +254,7 @@
                             <table class = 'table table-condensed table-bordered'>
                                 <tr><th>Num</th><th>Start</th><th>End</th><th>Length</th></tr>
                                 <tr ng-repeat = "cycle in arCycles">
+
                                     <td>
                                         <div class="clickable"
                                              ng-click="selectThing(cycle)">
@@ -243,9 +274,14 @@
                                         -->
 
                                         <div ng-repeat="admin in cycle.admins">
-                                            {{admin.start | date : "MMM dd yyyy  h:mm"}}
+                                            <span style="display: inline-block;width:200px">
+                                                {{admin.day}} {{admin.start | date : "MMM dd yyyy  h:mm"}}
+                                            </span>
+
                                             <span class="clickable" ng-click="selectThing(admin)" >
                                          {{admin.drugName}}</span> {{admin.dose}} {{admin.route}} over {{admin.length}} mins
+
+
                                             <div style = "margin-left: 8px;color: red" ng-repeat = "adj in admin.adjust">
                                                 Dose adjusted: {{adj}}
                                             </div>
@@ -459,6 +495,63 @@
 
         <uib-tab heading="Resources by Type">
             <em>Types to left, list in middle, details on right (like patient viewer)</em>
+
+        </uib-tab>
+
+
+        <uib-tab heading="Validation">
+
+            <div class="row">
+                <div class="col-md-12">
+                    <button class="btn-link btn pull-right" ng-click="validate()">Validate bundle</button>
+                </div>
+
+            </div>
+
+            <div class="alert-warning alert" ng-show="validating">
+                Validating bundle, please wait. This can take a little while...
+            </div>
+
+            <uib-tabset>
+                <uib-tab heading = "Details">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="scroll">
+                                <table class="table table-bordered table-condensed">
+                                    <tr ng-repeat="item in validationIssues">
+                                        <td>
+                                            <div class="clickable" ng-click="input.selectedValidationItem = item">{{item.type}}</div>
+                                        </td>
+                                        <td>{{item.detail}}</td>
+                                        <td>
+                                            {{item.location}} {{item.inx}}
+                                            <!--
+                                            <div ng-repeat="loc in iss.location">
+                                                {{loc}}
+                                            </div>
+                                            -->
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                        </div>
+                        <div class="col-md-6">
+
+                            <pre ng-show="input.selectedValidationItem">{{input.selectedValidationItem.resource | json}}</pre>
+
+                            <pre ng-show="input.selectedValidationItem">{{input.selectedValidationItem.iss | json}}</pre>
+
+
+                        </div>
+                    </div>
+
+                </uib-tab>
+                <uib-tab heading = "Json">
+                    <pre>{{validationResults | json}}</pre>
+                </uib-tab>
+            </uib-tabset>
+
 
         </uib-tab>
 

@@ -11,7 +11,7 @@ angular.module("anApp")
         objColours.ValueSet = '#FFFFCC';
         objColours.Practitioner = '#FFBB99';
         objColours.MedicationAdministration = '#ffb3ff';
-        objColours.MedicationRequest = '#ffb3ff';
+        objColours.MedicationRequest = '#cc9900';
         objColours.CarePlan = '#FF9900';
         objColours.Sequence = '#FF9900';
         objColours.CareTeam = '#ffe6ff'

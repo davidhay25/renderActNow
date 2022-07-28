@@ -9,6 +9,7 @@ angular.module("anApp")
 
             let extCycleNumber = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-number"
             let extDoseAdjustReason = "http://clinfhir.com/fhir/StructureDefinition/canshare-dose-adjustment-reason"
+            let extCycleDay = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-day"
 
             //load all patients for dropdown select
             $http.get("/ds/fhir/Patient").then(
@@ -23,6 +24,69 @@ angular.module("anApp")
 
 
                 })
+
+            $scope.validate = function() {
+                $scope.validating = true
+                let url = "http://hapi.fhir.org/baseR4/Bundle/$validate"
+                $http.post(url,$scope.allResourcesBundle).then(
+                    function (data) {
+
+                        $scope.validationResults = data.data
+                        makeValidationSummary($scope.validationResults)
+                    }, function (err) {
+                        $scope.validationResults = err.data
+                        makeValidationSummary($scope.validationResults)
+                    }
+                ).finally(
+                    function(){
+                        $scope.validating = false
+                    }
+                )
+
+                function makeValidationSummary(OO) {
+                    $scope.validationIssues = []
+                    OO.issue.forEach(function (iss) {
+
+
+
+                        let item = {type: iss.severity}
+                        item.iss = iss
+                        item.detail = iss.diagnostics
+                        try {
+                            let loc = iss.location[0]
+                            //get the location of the resource in in $scope.allResourcesBundle
+                            let ar = loc.split('[')
+                            let ar1 = ar[1].split(']')
+                            let inx = parseInt(ar1[0])// -1
+                            item.inx = inx
+
+                            if (inx >=0 && inx < $scope.allResourcesBundle.entry.length) {
+                                item.resource = $scope.allResourcesBundle.entry[inx].resource
+                            }
+
+                            //now make a shorted display
+                            let ar2 = loc.split('ofType')
+                            item.location = ar2[1]
+
+                            $scope.validationIssues.push(item)
+                        } catch (ex) {
+                            $scope.validationIssues.push(item)
+                            console.log(ex,"Error processing issue:" )
+                            console.log(JSON.stringify(iss))
+                        }
+
+                    })
+                }
+            }
+
+            $scope.selectIssue = function(iss){
+                let loc = iss.location[0]       //has the index entry in $scope.allResourcesBundle
+                let ar = loc.split('[')
+                let ar1 = ar[1].split(']')
+                let inx = parseInt(ar1[0]) -1
+                console.log(inx)
+                $scope.input.validationResource =  $scope.allResourcesBundle.entry[inx]
+            }
 
             //select patient on diagnosis
             $scope.selectByDx = function() {
@@ -92,7 +156,7 @@ angular.module("anApp")
                 $http.get(url1).then(
                     function(data) {
                         $scope.allResourcesBundle = data.data
-                        console.log(data.data)
+                        //console.log(data.data)
                         $scope.allEntries = []
                         data.data.entry.forEach(function (entry) {
                             //keep the patient out of it. It clutters the graph
@@ -187,12 +251,13 @@ angular.module("anApp")
                 $scope.hashAllObsById = {}
 
                 $scope.uniqueMedAdminDate = {}      //a hash of all dates that an administration was given
+                $scope.uniqueRxDate = {}      //a hash of all dates that a prescription was given (MR)
                 $scope.allEntries.forEach(function (entry) {
                     let resource = entry.resource
                     switch (resource.resourceType) {
                         case "MedicationAdministration" :
-                            //the date that the administratoion was given - for the timeline
 
+                            //the date that the administratoion was given - for the timeline
                             if (resource.effectivePeriod) {
                                 let da = resource.effectivePeriod.start
                                 if (da) {
@@ -217,6 +282,16 @@ angular.module("anApp")
                             }
                             break
 
+                        case "MedicationRequest" :
+                            if (resource.authoredOn) {
+                                //only want to day accuracy
+                                let ar = resource.authoredOn.split("T")
+                                let day = ar[0]
+                                $scope.uniqueRxDate[day] = $scope.uniqueRxDate[day] || []
+                                $scope.uniqueRxDate[day].push(resource)
+                            }
+
+                            break
                         case "Observation" :
 
                             $scope.hashAllObsById["Observation/"+resource.id] =  resource   //to allow lookup by reference
@@ -228,7 +303,6 @@ angular.module("anApp")
                                 $scope.hashAllObs[key] = $scope.hashAllObs[key] || []
                                 $scope.hashAllObs[key].push(resource)
                             }
-
 
                             //if there's a partof then check what the reference is to...
                             if (resource.partOf) {
@@ -273,8 +347,17 @@ angular.module("anApp")
                         let cycle = {}
                         cycle.period = resource.period
                         cycle.resource = resource
-                        let start = moment(cycle.period.start)
-                        let end = moment(cycle.period.end)
+
+                        let start = moment()
+                        if (cycle.period && cycle.period.start) {
+                            start = moment(cycle.period.start)
+                        }
+                        let end = moment()
+                        if (cycle.period &&cycle.period.end) {
+                            start = moment(cycle.period.end)
+                        }
+
+
                         cycle.length = end.diff(start,'days')
                         cycle.cycleNumber = getSingleExtension(resource,extCycleNumber,'valueInteger')
 
@@ -290,11 +373,14 @@ angular.module("anApp")
 
                                 let startAdmin = moment(MA.effectivePeriod.start)
                                 let endAdmin = moment(MA.effectivePeriod.end)
+
                                 admin.start = MA.effectivePeriod.start
+                                admin.day = getSingleExtension(MA,extCycleDay,'valueString')
+
                                 admin.length = endAdmin.diff(startAdmin,'minutes')
                                 admin.resource = MA
-                                admin.adjust = getMultiExtension(MA,extDoseAdjustReason,'valueString')
 
+                                admin.adjust = getMultiExtension(MA,extDoseAdjustReason,'valueString')
                                // let ar = getMultiExtension(MA,extDoseAdjustReason,'valueString')
                             //if (admin.adjust.length > 0) {console.log(admin.adjust,cycle.cycleNumber)}
 
@@ -354,8 +440,17 @@ angular.module("anApp")
                         let drugName = "Unknown"        //this will be the group
                         if (MA.medicationCodeableConcept) {
                             drugName = MA.medicationCodeableConcept.text
+
+                            let route = ""
+                            if (MA.dosage && MA.dosage.route) {
+                                drugName += " " + MA.dosage.route.text
+                            }
+
                         }
 
+
+
+                        //just the details of the med
                         uniqueMeds[drugName] = {id:drugName,content:drugName}
 
                         let item = {}
@@ -369,10 +464,55 @@ angular.module("anApp")
                             item.title = "Has observations"
                         }
 
+
+
                         arData.push(item)
 
                     })
                 })
+
+
+                //add the Rx data to the mix
+                Object.keys($scope.uniqueRxDate).forEach(function (date) {
+                    let arRx = $scope.uniqueRxDate[date]        //all meds prescribed on that date
+                    arRx.forEach(function (rx) {
+                        if (rx.authoredOn) {
+
+                            //not actually getting routes on these meds
+                            let route = ""
+                            if (rx.dosageInstruction && rx.dosageInstruction.route) {
+                                route = rx.dosageInstruction.route.text
+                            }
+
+                            let drugName = rx.medicationCodeableConcept.text + " (rx) " + route
+                            //just the details of the med
+                            uniqueMeds[drugName] = {id:drugName,content:drugName}
+
+                            let item = {}
+                            item.id = ctr++
+                            item.start = date
+                            item.group = drugName
+                            item.rx = rx            //just for the display todo - make rx separate
+                            //item.className = 'rx'
+                            /*
+                            item.observations = hashMedObs[`MedicationAdministration/${MA.id}`]
+                            if (item.observations && item.observations.length > 0) {
+                                item.className = 'red'
+                                item.title = "Has observations"
+                            }
+*/
+                            arData.push(item)
+
+
+
+                            }
+
+                    })
+
+                })
+
+
+
 
                 //create the group array (individual drugs)
                 let arGroups = []
