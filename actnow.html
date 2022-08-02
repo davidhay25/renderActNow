@@ -680,9 +680,17 @@ Add discontinue events (?or will just show)
                     <a target="_blank" ng-href="{{openModelinPublicPage}}">Open in Data Standards page</a>
                 </div>
                 <div class="col-md-7">
-                    <div class="scrollQRList">
-                        <pre>{{ selectedNode.data.item | json}}</pre>
-                    </div>
+                    <uib-tabset>
+                        <uib-tab heading="Details">
+                            <ng-include src = "'includes/itemDetails.html'"></ng-include>
+                        </uib-tab>
+                        <uib-tab heading="Json">
+                            <pre>{{ selectedNode.data.item | json}}</pre>
+                        </uib-tab>
+                    </uib-tabset>
+
+
+                  
 
                 </div>
             </div>
