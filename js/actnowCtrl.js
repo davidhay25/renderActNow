@@ -11,7 +11,7 @@ angular.module("anApp")
             let extDoseAdjustReason = "http://clinfhir.com/fhir/StructureDefinition/canshare-dose-adjustment-reason"
             let extCycleDay = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-day"
 
-            //load all patients for dropdown select
+            //load all patients for dropdown select. Note that a single patient can have multiple resources - use identifier to combine
             $http.get("/ds/fhir/Patient").then(
                 function(data) {
                     $scope.allPatientIds = []
@@ -21,6 +21,7 @@ angular.module("anApp")
 
 
                     $scope.input.selectedPatientId = $scope.allPatientIds[0]
+                    $scope.loadPatient($scope.input.selectedPatientId)
 
 
                 })
@@ -152,6 +153,10 @@ angular.module("anApp")
                 //let id = $scope.input.selectedPatientId
                 //console.log($scope.input.selectedPatientId)
                 //console.log("Loading data for " + id)
+
+                $scope.loadReports()       //todo add patient filter
+
+
                 let url1 = `/an/fhir/Patient/${id}/$everything`
                 $http.get(url1).then(
                     function(data) {
@@ -162,6 +167,8 @@ angular.module("anApp")
                             //keep the patient out of it. It clutters the graph
                             if (entry.resource.resourceType !== 'Patient'){
                                 $scope.allEntries.push(entry)
+                            } else {
+                                $scope.selectedPatient = entry.resource
                             }
                         })
                         createCyclesArray()     //and hashAllObsById
@@ -180,8 +187,80 @@ angular.module("anApp")
                 })
             }
 
+            $scope.loadReports = function (patientIdentifier) {
+                //load all the reports for a patient. Right now, this is all reports...
+                //note that is real life, these would actulally be DiagnosticReports with observations... (but the data should be the same)
+                //todo may be better to create a specific service in structuredpath for this
 
-            //only 1 at present....
+                $http.get("/an/getQRSummary").then(
+                    function(data) {
+                        console.log(data.data)
+                        $scope.reportQR = data.data
+                    }
+                )
+
+
+            }
+
+            $scope.selectQR = function (item) {
+                delete $scope.selectedQR
+                let qry = `an/getQR/${item.id}`
+                $http.get(qry).then(
+                    function(data) {
+                        $scope.selectedQR = data.data
+
+                        //now get the associated Q
+                        let qUrl = $scope.selectedQR.questionnaire
+
+                        $http.get("/an/getQbyUrl?url=" + qUrl).then(
+                            function (data) {
+                                console.log(data.data)
+                                $scope.selectedQ = data.data
+
+                                //Compare the QR against the requirements of the Q
+                                $scope.audit =  anSvc.auditQRAgainstQ($scope.selectedQ,$scope.selectedQR)
+
+                                let vo = anSvc.makeTreeFromQ($scope.selectedQ)
+                                drawTree(vo.treeData)
+                            }
+                        )
+
+                    }, function (err) {
+                        console.log(err)
+                    }
+                )
+
+
+            }
+
+            let drawTree = function(treeData){
+                //console.log(treeData)
+                treeData.forEach(function (item) {
+                    item.state.opened = true
+                    if (item.parent == 'root') {
+                        item.state.opened = false;
+                    }
+                })
+
+                $('#qTree').jstree('destroy');
+
+                let x = $('#qTree').jstree(
+                    {'core': {'multiple': false, 'data': treeData, 'themes': {name: 'proton', responsive: true}}}
+                ).on('changed.jstree', function (e, data) {
+                    //seems to be the node selection event...
+
+                    if (data.node) {
+                        $scope.selectedNode = data.node;
+                        console.log(data.node)
+                    }
+
+                    $scope.$digest();       //as the event occurred outside of angular...
+                })
+
+
+            }
+
+            //only 1 at present....(and likely to remain if we have a specific patient resource per regimen
             function createRegimensArray() {
                 $scope.arRegimens = []
                 $scope.allEntries.forEach(function (entry) {
@@ -220,8 +299,8 @@ angular.module("anApp")
                 delete $scope.addressedCondition
                 let conditionId     //the condition that this CP refers to in the .addresses element
                 if (regimen.addresses) {
-                    regimen.addresses.forEach(function (add) {
-                        let ref = add.reference
+                    regimen.addresses.forEach(function (addr) {
+                        let ref = addr.reference
                         let ar = ref.split('/')
                         if (ar[0] == 'Condition') {
                             conditionId = ar[1]

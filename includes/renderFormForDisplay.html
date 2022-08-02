@@ -1,0 +1,55 @@
+<div>
+    <!-- Render a printable / viewable version of the form
+    needs $scope.Q & $scope.QR set
+    -->
+    <style>
+        .section {
+            border: 1px solid gainsboro;
+            padding : 3px;
+            margin: 4px;
+            -webkit-border-radius: 5px;
+            -moz-border-radius: 5px;
+            border-radius: 5px;
+            background-color: cornsilk;
+            font-weight: bold;
+        }
+
+        .lineItem {
+            background-color: #f8f8f8;
+            margin-bottom: 2px
+        }
+    </style>
+
+    <div class="banner">Pathology form</div>
+
+
+    <div ng-repeat="section in selectedQR.item">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="section">{{section.text}}</div>
+            </div>
+
+        </div>
+
+
+        <div ng-repeat="item in section.item">
+
+            <div ng-repeat="answer in item.answer">
+                <ng-include src = "'includes/renderSingleItemForDisplay.html'"></ng-include>
+            </div>
+
+            <!-- If there is an item element, then this is a group so show the text-->
+            <div ng-show="item.item">{{item.text}}</div>
+
+            <div ng-repeat = "gc in item.item">
+
+                <div ng-repeat="answer in gc.answer">
+                    <ng-include src = "'includes/renderSingleItemForDisplay.html'"></ng-include>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>

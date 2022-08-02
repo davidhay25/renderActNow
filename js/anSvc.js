@@ -11,7 +11,7 @@ angular.module("anApp")
         objColours.ValueSet = '#FFFFCC';
         objColours.Practitioner = '#FFBB99';
         objColours.MedicationAdministration = '#ffb3ff';
-        objColours.MedicationRequest = '#cc9900';
+        objColours.MedicationRequest = "#f4d2b7" ;
         objColours.CarePlan = '#FF9900';
         objColours.Sequence = '#FF9900';
         objColours.CareTeam = '#ffe6ff'
@@ -35,6 +35,65 @@ angular.module("anApp")
 
 
         return {
+
+            auditQRAgainstQ : function (Q,QR) {
+                //pull out required data items assuming the report is in a QR. For real, this will be the observation in a DiagnosticReport
+                //todo - look spoecifically for ancillary tests
+                let qrHash = makeQRHash(QR)         //all data in the QR hashed by
+                let requiredDataItems = []          //all the data items that are required in the Q
+
+                if (Q.item) {
+                    Q.item.forEach(function (sectionItem) {
+                        if (sectionItem.item) {
+                            sectionItem.item.forEach(function (child, childInx) {
+                                if (child.item) {
+                                    child.item.forEach(function (grandchild) {
+                                        //a group
+                                        compareQandQR(grandchild,qrHash[grandchild.linkId])
+                                    })
+                                } else {
+                                    //a leaf
+                                    compareQandQR(child,qrHash[child.linkId])
+                                }
+                            })
+                        }
+                    })
+                }
+
+                return requiredDataItems
+
+                function compareQandQR(qItem,qrItem) {
+
+                    if (qItem.repeats) {
+                        let vo = {linkId:qItem.linkId,dataItem:qrItem}
+                        requiredDataItems.push(vo)
+                    }
+
+                }
+
+                function makeQRHash(QR) {
+                    let hash = {}
+                    if (QR.item) {
+                        QR.item.forEach(function (sectionItem) {
+                            if (sectionItem.item) {
+                                sectionItem.item.forEach(function (child, childInx) {
+                                    if (child.item) {
+                                        child.item.forEach(function (grandchild) {
+                                            hash[grandchild.linkId] = grandchild
+                                        })
+                                    } else {
+                                        //a leaf
+                                        hash[child.linkId] = child
+                                    }
+                                })
+                            }
+                        })
+                    }
+                    return hash
+
+                }
+
+            },
 
             getSingleExtension : function(resource,url,type) {
                 let result
@@ -201,21 +260,9 @@ angular.module("anApp")
                 })
 
 
-                //create the nodes...
+                //create the nodes... Can assume that the references are always {type}/{id}
                 arResources.forEach(function(resource,inx) {
-                    //let resource = item.resource
-
-
                     let url = resource.resourceType + "/" +resource.id
-                    /*
-                   if (resource.id.substr(0,1) == '#') {
-                      //'# url =  "#" + resource.id    //this is to a conained resource
-
-                   } else {
-                       url =  "urn:uuid:" + resource.id    //assume all references are to uuids
-                   }
-
-*/
 
                     objNodes[url] = resource
 
@@ -232,13 +279,17 @@ angular.module("anApp")
                         try {
                             if (resource.category[0].coding[0].code == 'regimen') {
                                 node.color = objColours.regimen
-                                node.label = "Regimen plan"     //todo better to get this from text...
+                                node.label = "Regimen plan\nCarePlan"
                             } else {
-                                node.label = "Cycle plan"
+                                node.label = "Cycle plan\nCarePlan"
                             }
                         } catch (e) {
 
                         }
+                    } else {
+                        //get the narrative for the title
+                        let text = getNarrative(resource)
+                        node.label = text + "\n" + resource.resourceType
                     }
 
 
@@ -253,17 +304,9 @@ angular.module("anApp")
 
                     refs.forEach(function(ref){
                         allReferences.push({src:node,path:ref.path,targ:ref.reference,index:ref.index})
-                        //gAllReferences.push({src:url,path:ref.path,targ:ref.reference,index:ref.index});    //all relationsin the collection
+
                     })
                 });
-
-                // console.log(objNodes)
-
-                //so now we have the references, build the graph model...
-                //let hash = {};      //this will be a hash of nodes that have a reference to centralResourceId (if specified)
-
-
-                //console.log(allReferences)
 
                 allReferences.forEach(function(ref){
 
@@ -409,6 +452,18 @@ angular.module("anApp")
                 }
 
 
+                function getNarrative(resource) {
+                    //assumes the narrative follows the FHIR pattern of the text being inside a div element...
+                    if (resource.text && resource.text.div) {
+                        var jqueryObject = $($.parseHTML(resource.text.div));
+
+                        console.log(jqueryObject)
+                        console.log(jqueryObject.first().text()) //html())
+
+                        return jqueryObject.first().text()
+
+                    }
+                }
 
 
             }

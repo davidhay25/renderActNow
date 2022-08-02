@@ -68,6 +68,11 @@
             overflow-y: scroll;
         }
 
+        .scrollQRList {
+            height: 400px;
+            overflow-y: scroll;
+        }
+
     </style>
 
 </head>
@@ -84,7 +89,7 @@
 
                     <span>
                         <a class="navbar-brand" href="#">
-                            CanShare: ACT-Now data
+                            CanShare: ACT-Now Chemotherapy and Pathology data
                         </a>
                     </span>
             </div>
@@ -350,7 +355,6 @@
                 <em>pre & post regimen observations</em>
             </div>
 
-
             <div ng-repeat = "regimen in arRegimens">
 
                 <uib-tabset>
@@ -410,13 +414,115 @@
                         </div>
 
                     </uib-tab>
-                    <uib-tab heading = "Json">
+                    <uib-tab heading = "Regimen Json">
                         <pre>{{regimen.resource | json}}</pre>
                     </uib-tab>
+                    <uib-tab heading = "Condition Json">
+                        <pre>{{addressedCondition | json}}</pre>
+                    </uib-tab>
+                    <uib-tab heading = "Patient Json">
+                        <pre>{{selectedPatient | json}}</pre>
+                    </uib-tab>
+
+
                 </uib-tabset>
 
 
             </div>
+        </uib-tab>
+
+        <uib-tab heading="Pathology reports">
+            <br/>
+
+            <div class="alert alert-warning">This has all report forms (QR resources) for all patients currently
+                in the <a target="_blank" href="https://canshare.co.nz/dataStandards.html"> structured path public page</a>.
+            Next up will be to link to selected patient. </div>
+
+            <!--
+
+            <button class="btn-link btn pull-right" ng-click="loadReports()">Load reports</button>
+
+            -->
+
+            <div class="row">
+                <div class="col-md-3">
+
+                    <div class="scrollQRList">
+                        <div ng-repeat="(k,v) in reportQR">
+                            <h4>{{k}}</h4>
+                            <div ng-repeat="item in v" style="margin-left: 8px"
+                                 class="clickable"
+                                 ng-click="selectQR(item)">
+                                {{item.date | date}}
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <uib-tabset>
+                        <uib-tab heading="Report">
+                            <ng-include src = "'includes/renderFormForDisplay.html'"></ng-include>
+                        </uib-tab>
+
+                        <uib-tab heading="Report Definition (Tree)">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div id="qTree"></div>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="scrollQRList">
+                                        <pre>{{ selectedNode.data.item | json}}</pre>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+
+
+
+                        </uib-tab>
+
+
+                        <uib-tab heading="Report Audit">
+                            <pre>{{audit | json}}</pre>
+                        </uib-tab>
+
+                        <uib-tab heading="Report Json">
+                            <pre>{{selectedQR | json}}</pre>
+                        </uib-tab>
+
+
+                        <uib-tab heading="Report Definition Json">
+                            <pre>{{selectedQ | json}}</pre>
+                        </uib-tab>
+                    </uib-tabset>
+
+
+
+
+
+                </div>
+            </div>
+
+
+
+
+
+            reports for this patient. from QR from structured path. ?does report need tumour type
+            Right now, these are all reports for all patients as there is no patient link.
+            Idea is to show what's possible...
+
+
+            <em>Note that this data is derived from Sample reports entered into the StructuredPath
+            tool, and so are represented as QuestionnaireResponse resources. In real life these would
+            be DiagnosticReport/Observation - but the actual data present should be the same</em>
+
+
+
+
         </uib-tab>
 
         <uib-tab heading="Observations">
@@ -431,7 +537,7 @@
                             {{k}}
                         </div>
                     </div>
-
+Add discontinue events (?or will just show)
                 </div>
                 <div class="col-md-10">
                     <uib-tabset>
@@ -439,7 +545,7 @@
                             <div class="row">
                                 <div class ="col-md-6">
                                     <table class="table table-bordered">
-                                        <tr><th>Date</th><th>Age</th><th>Value</th></tr>
+                                        <tr><th>Date</th><th>Age of Obs.</th><th>Value</th></tr>
                                         <tr ng-repeat = "obs in selectedObservationList">
 
                                             <td>
@@ -472,6 +578,9 @@
                         <uib-tab heading="Chart">
 <em>From patient viewer</em>
                         </uib-tab>
+                        <uib-tab heading="Timeline">
+                            <em>? chart is better</em>
+                        </uib-tab>
                     </uib-tabset>
 
                 </div>
@@ -483,12 +592,15 @@
 
         </uib-tab>
 
-        <uib-tab heading="Structured Path integration">
+        <uib-tab ng-show="false" heading="Structured Path integration">
 
             <em>Q from SP - use public api. Search / associate. store reference in regimen careplan (an extension) </em>
             <div><em>Much of search is not coded - eg general text or more specific - like by section text (ancillary)</em></div>
 
             <div><em>Want 'ancillary studies' section - search for a section with 'ancillary' in the text</em></div>
+
+            <div><em>list observations</em></div>
+            <div><em>query QR fromstructured path - need patient id + tumoretype</em></div>
 
 
         </uib-tab>
@@ -555,7 +667,7 @@
 
         </uib-tab>
 
-        <uib-tab heading="Json">
+        <uib-tab heading="Full Patient Json">
             <pre>{{allResourcesBundle | json}}</pre>
         </uib-tab>
     </uib-tabset>

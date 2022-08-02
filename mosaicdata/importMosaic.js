@@ -70,7 +70,16 @@ async function insertDataOneRegimen(regimenId) {
 
     //need to create a patient using the 'identifier' in the regimen (it's jus a number - we'll use it as the id)
     let arRegimen = hashRegimen[regimenId]      //array of data from thie regimen line in the csv
-    let patientId = arRegimen[2]
+    let patientId = arRegimen[2]                //in a real situation this is the NHI
+
+    //new strategy: Create a separate Patient resource for each regimen, & use the Patient.identifier to teel when they are the same
+    //makes the UI simpler - doesn't overly affect the design as everything would still support multiple regimens per patient
+    //in any case, when getting data from multiple sources we can;t assume that a single patient resource has been established so
+    //inevitable there will be multiple patient resources for the same actual person. But we can assume the NHI will be there so a query
+    //for all data for a person will need to query multiple patients by identifier.
+    //each supplier of data will have a specific system for the identifier
+    //resource id contention is going to be a major thing to think about when acquiring data...
+    /*
     let patient
     if (hashAllPatients[patientId]) {
         patient = hashAllPatients[patientId]
@@ -79,6 +88,10 @@ async function insertDataOneRegimen(regimenId) {
         addNarrative(patient,"John Doe - " + regimenId)
 
     }
+*/
+    let patient = {resourceType:"Patient",id:regimenId,name:[{text:"John Doe - " + regimenId}]}
+    patient.identifier = [{system:"http://mosaic.com/patients",value:patientId}]
+    addNarrative(patient,"Identifier: " + patientId)
 
     //create the bundle of resources that represents a single regimen
     let bundle = createBundle(regimenId,patient)
@@ -202,7 +215,6 @@ function makeRegimenCP(vo,patient) {
             addNarrative(outcomeObs,"Outcome observation: Discontinued " + ar[11])
             outcomeObs.code = {text:"outcome",coding:[{code:"385676005",system:"http://snomed.info/sct"}]}
             outcomeObs.valueCodeableConcept = {text:ar[11]}
-
             outcomeObs.focus = [{reference:"CarePlan/"+ cp.id}]   //has a reference back to the regimen plan
 
         }
@@ -228,13 +240,17 @@ function makeRegimenCP(vo,patient) {
     let condition = {resourceType:"Condition"}
     condition.id = ar[0]        //todo currently the same as the Regimen careplan
     condition.subject = {reference:"Patient/"+patient.id}
-    condition.code = {coding:[{system:"http://hl7.org/fhir/sid/icd-9-cm",code:[ar[12]]}],text:ar[13]}
+    let codeText = ar[13]
+    condition.code = {coding:[{system:"http://hl7.org/fhir/sid/icd-9-cm",code:[ar[12]]}]}
 
-    addNarrative(condition,ar[13])
+    if (codeText) {
+        codeText = codeText.trim()
+        condition.code.text = codeText
+    }
+
+    addNarrative(condition,codeText)
 
     addExtension(condition,extLaterality,'valueString',ar[14])
-
-
 
     //the reference from the regimen to the Condition
     cp.addresses = {reference:"Condition/"+ condition.id}
@@ -262,26 +278,30 @@ function makeRegimenCP(vo,patient) {
     //this is pathological staging only todo ?need to add clincial staging as well
     //patient,regimen,type,t,n,m,stage
 
-    //pathological TNM staging
-    let arTnmResources = makeTNMStagingPath(patient,cp,null,ar[22],ar[23],ar[24],ar[25])
-    arResources = arResources.concat(arTnmResources)
-    //The condition staging should reference the TNM. The first resource returned by makeTNMStaging is the combined stage
-    let tnmStage = arTnmResources[0]
-    if (tnmStage) {
-        condition.stage = [{assessment:{reference:"Observation/"+tnmStage.id}}]
-    }
-
-    //clinicall TNM staging
-    let arClinTnmResources = makeTNMStagingClin(patient,cp,null,ar[18],ar[19],ar[20],ar[21])
-    arResources = arResources.concat(arClinTnmResources)
-    //The condition staging should reference the TNM. The first resource returned by makeTNMStaging is the combined stage
-    let tnmStageClin = arClinTnmResources[0]
-    if (tnmStageClin) {
-        condition.stage = [{assessment:{reference:"Observation/"+tnmStageClin.id}}]
+    //pathological TNM staging. Assume that the combined stage is present, and if it is then the others are present...
+    if (ar[25]) {
+        let arTnmResources = makeTNMStagingPath(patient,cp,ar[22],ar[23],ar[24],ar[25])
+        arResources = arResources.concat(arTnmResources)
+        //The condition staging should reference the TNM. The first resource returned by makeTNMStaging is the combined stage
+        let tnmStage = arTnmResources[0]
+        if (tnmStage) {
+            condition.stage = condition.stage || []
+            condition.stage.push({assessment:{reference:"Observation/"+tnmStage.id}})
+        }
     }
 
 
-
+    //clinical TNM staging
+    if (ar[21]) {
+        let arClinTnmResources = makeTNMStagingClin(patient, cp, null, ar[18], ar[19], ar[20], ar[21])
+        arResources = arResources.concat(arClinTnmResources)
+        //The condition staging should reference the TNM. The first resource returned by makeTNMStaging is the combined stage
+        let tnmStageClin = arClinTnmResources[0]
+        if (tnmStageClin) {
+            condition.stage = condition.stage || []
+            condition.stage.push({assessment: {reference: "Observation/" + tnmStageClin.id}})
+        }
+    }
 
 
     //now add the Other Observations
@@ -404,7 +424,7 @@ function makeMedAdmin(ar,patient,cp) {
         rx.authoredOn = convertDate(ar[5])
         rx.identifier = [newId]      //temp hack as there is no search param for Supporting info
         rx.supportingInformation = [{reference:"CarePlan/"+cp.id}]
-        addNarrative(rx,"Med Rx " + ar[6])
+        addNarrative(rx, ar[6])
 
        // console.log(rx)
         return [rx]
@@ -421,7 +441,7 @@ function makeMedAdmin(ar,patient,cp) {
         addExtension(admin,extCycleDay,'valueString',ar[4])
         admin.subject = {reference:"Patient/"+patient.id}
         admin.medicationCodeableConcept = {text:ar[6]}
-        addNarrative(admin,"Med Admin " + ar[6])
+        addNarrative(admin, ar[6])
 
         if (ar[9]) {
             admin.dosage = {text:ar[9]}     //administered dose  - always the administered dase
@@ -497,7 +517,7 @@ function makeMedAdmin(ar,patient,cp) {
 
 //create a set of TNM stage observations compliant with mCode (https://hl7.org/fhir/us/mcode/index.html)
 //uses the clincial codes
-function makeTNMStagingPath(patient,regimen,type,t,n,m,stage) {
+function makeTNMStagingPath(patient,regimen,t,n,m,stage) {
     //create an id based on regimenId and type of obe (only 1 per regimen ATM)
     let stageObs = makeObservation(regimen.id+'tnm-path-stage', patient,"21908-9",stage,"TNM group")
     addNarrative(stageObs,"Pathological TNM Group: " + stage)
@@ -668,6 +688,7 @@ function addNarrative(resource,txt) {
     txt = txt.replace(/>/g, "")
     txt = txt.replace(/["']/g, "");
     txt = txt.replace(/&/g, "&amp;")
+    txt = txt.trim()
 
     text.div = "<div xmlns='http://www.w3.org/1999/xhtml'><div>" + txt + "</div></div>"
     resource.text = text

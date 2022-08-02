@@ -58,6 +58,79 @@ console.log(url)
         }
     })
 
+    //get a single Q from the forms server based on the url
+    app.get('/an/getQbyUrl',async function(req,res){
+
+        let url = "https://canshare.co.nz/ds/fhir/Questionnaire?url=" + req.query.url
+        console.log(url)
+        let config = {headers:{Authorization:'dhay'}}
+
+        try {
+            results = await axios.get(url,config)  //should be a single resource
+            let bundle = results.data
+            //todo need to check if > 1
+            if (bundle.entry && bundle.entry.length > 0) {
+
+                res.json(bundle.entry[0].resource)
+            } else {
+                res.status(404).json({})
+            }
+
+
+
+        } catch (ex) {
+            res.json(ex)
+        }
+    })
+
+    app.get('/an/getQR/:id',async function(req,res){
+        let qry = "https://canshare.co.nz/ds/fhir/QuestionnaireResponse/" + req.params.id
+
+        //let qry = "https://canshare.co.nz/ds/fhir/QuestionnaireResponse?_id=" + req.params.id + "&_include=QuestionnaireResponse:questionnaire"
+
+        console.log(qry)
+
+        let config = {headers:{Authorization:'dhay'}}
+
+        try {
+            results = await axios.get(qry,config)  //should be a single resource
+            res.json(results.data)
+
+        } catch (ex) {
+            res.json(ex)
+        }
+    })
+
+    //get a summary of all the QR hashed by QR.url. Need to filter on patient at some point
+    //todo - could I use graphql to get Q title as well?
+    app.get('/an/getQRSummary',async function(req,res){
+        let qry = "https://canshare.co.nz/ds/fhir/QuestionnaireResponse?_elements=questionnaire,authored"
+        let bundle = await getBundle(qry)
+        let reportQR = {}
+        if (bundle.entry) {
+            bundle.entry.forEach(function (entry) {
+                let QR = entry.resource
+                let qUrl = QR.questionnaire
+                if (qUrl) {
+                    qUrl = qUrl.replace("http://canshare.com/fhir/Questionnaire/","")
+                }
+
+
+                if (reportQR[qUrl]) {
+                    let tmp = reportQR[qUrl]
+                    tmp.push({date:QR.authored,id:QR.id})
+
+                } else {
+                    reportQR[qUrl] = [{date:QR.authored,id:QR.id}]
+                }
+            })
+            res.json(reportQR)
+        } else {
+            res.json({})
+        }
+
+    })
+
 
 
     //get a summary of ann conditions by disease type from the local server. returns a hash keyed by disease
@@ -97,8 +170,6 @@ console.log(url)
         res.json(hashUniqueDisease)
     })
 
-
-
     async function getBundle(url) {
         let results = await axios.get(url)      //get the first
         let bundle = results.data       //the first bundle
@@ -129,6 +200,9 @@ console.log(url)
         return bundle
 
     }
+
+
+
 
     app.get('/ds/fhir/:type',async function(req,res){
         let url = serverRoot + req.params.type

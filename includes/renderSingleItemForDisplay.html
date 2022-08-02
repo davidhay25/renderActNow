@@ -1,0 +1,44 @@
+
+
+<div class="row">
+    <div class="col-md-4">
+        <!-- This template is called by both child and grandchild so if the grandchild is present, hide the child text-->
+        <div style="padding-left: 12px">{{gc.text}}</div>
+        <div ng-hide="gc">{{item.text}}</div>
+    </div>
+
+    <div class="col-md-8">
+
+        <div ng-show="answer.valueDecimal">
+            {{answer.valueDecimal}}
+        </div>
+
+        <div ng-show="answer.valueString">
+            {{answer.valueString}}
+        </div>
+
+        <div ng-show="answer.valueBoolean">
+            {{answer.valueBoolean ? "Yes" : "No"}}
+        </div>
+
+        <div ng-show="answer.valueCoding">
+            {{answer.valueCoding.display}} <!--({{answer.valueCoding.code}}  {{answer.valueCoding.system}}) -->
+        </div>
+        <div ng-show="answer.valueReference">
+            {{answer.valueReference.display}}
+        </div>
+
+        <div ng-show="answer.valueDate">
+            {{answer.valueDate}}
+        </div>
+
+        <div ng-show="answer.valueInteger">
+            {{answer.valueInteger}}
+        </div>
+
+    </div>
+
+</div>
+
+
+

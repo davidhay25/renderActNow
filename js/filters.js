@@ -42,9 +42,6 @@ angular.module("anApp")
             if (hn && hn.text) {
                 return hn.text
             }
-           // if ()
-
-
         }
     })
 
