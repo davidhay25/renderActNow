@@ -269,7 +269,14 @@ angular.module("anApp")
 
                     if (data.node) {
                         $scope.selectedNode = data.node;
-                        console.log(data.node)
+
+                        //add meta
+                        let element = data.node.data.item
+
+                        let desc = anSvc.getSingleExtension (element,"http://clinfhir.com/fhir/StructureDefinition/canshare-questionnaire-item-description","String")
+                        data.node.data.meta = {description:desc}
+
+                        //console.log(data.node)
                     }
 
                     $scope.$digest();       //as the event occurred outside of angular...
