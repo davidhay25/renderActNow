@@ -233,7 +233,22 @@ angular.module("anApp")
 
             }
 
-            let drawTree = function(treeData){
+
+            function makeANTree() {
+                $http.get("/an/getQbyUrl?url=http://canshare.com/fhir/Questionnaire/actnowdatastandard").then(
+                    function (data) {
+                        console.log(data.data)
+                        $scope.openModelinPublicPage = "https://canshare.co.nz/dataStandards.html?" + data.data.id
+                        let vo = anSvc.makeTreeFromQ(data.data)
+                        drawTree(vo.treeData,'anTree')
+                    }, function (err) {
+                        console.log(err.data)
+                    }
+                )
+            }
+            makeANTree()
+
+            let drawTree = function(treeData,elementId){
                 //console.log(treeData)
                 treeData.forEach(function (item) {
                     item.state.opened = true
@@ -242,9 +257,12 @@ angular.module("anApp")
                     }
                 })
 
-                $('#qTree').jstree('destroy');
+                elementId = elementId || "qTree"
 
-                let x = $('#qTree').jstree(
+
+                $('#'+elementId).jstree('destroy');
+
+                let x = $('#'+elementId).jstree(
                     {'core': {'multiple': false, 'data': treeData, 'themes': {name: 'proton', responsive: true}}}
                 ).on('changed.jstree', function (e, data) {
                     //seems to be the node selection event...

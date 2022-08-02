@@ -592,6 +592,8 @@ Add discontinue events (?or will just show)
 
         </uib-tab>
 
+
+
         <uib-tab ng-show="false" heading="Structured Path integration">
 
             <em>Q from SP - use public api. Search / associate. store reference in regimen careplan (an extension) </em>
@@ -664,6 +666,26 @@ Add discontinue events (?or will just show)
                 </uib-tab>
             </uib-tabset>
 
+
+        </uib-tab>
+
+        <uib-tab heading="ACT-NOW model">
+
+            <div class="row">
+                <div class="col-md-5">
+                  <!--  <div id="qTree"></div> -->
+                    <div id="anTree"></div>
+                    <br/>
+
+                    <a target="_blank" ng-href="{{openModelinPublicPage}}">Open in Data Standards page</a>
+                </div>
+                <div class="col-md-7">
+                    <div class="scrollQRList">
+                        <pre>{{ selectedNode.data.item | json}}</pre>
+                    </div>
+
+                </div>
+            </div>
 
         </uib-tab>
 
