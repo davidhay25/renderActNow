@@ -19,6 +19,8 @@ let updateServer = true
 //definitions
 let regimenCategory = {coding:[{system:"http:canshare.com",code:"regimen"}]}
 let cycleCategory = {coding:[{system:"http:canshare.com",code:"cycle"}]}
+let patientCategory = {coding:[{system:"http:canshare.com",code:"patient"}]}
+
 let extOriginalData = "http://clinfhir.com/fhir/StructureDefinition/canshare-original-data"
 let extCycleNumber = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-number"
 let extCycleDay = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-day"
@@ -152,7 +154,9 @@ function createBundle(regimenId,patient) {
     //create the regimen CP and associated resources (eg Observations). The regimen function will also create the associated cycle & admin
     //console.log(hashRegimen[regimenId])
 
-    ar = ar.concat(makeRegimenCP(hashRegimen[regimenId],patient) ) 
+
+    ar = ar.concat(makeRegimenCP(hashRegimen[regimenId],patient) )
+
 
     hash = {}
     let cntCycles = 0    //quite a few cycles have no date which are ignored. Don't save a regimen with no cycle (total cycleCount == 1)
@@ -189,7 +193,19 @@ function createBundle(regimenId,patient) {
 //work from the mapping table - https://docs.google.com/spreadsheets/d/1IQTtG_agKUcBAqV_hlaZYhZY0PXRn6kp9qxvNwRWlLk/edit#gid=0
 function makeRegimenCP(vo,patient) {
 
+
+    //make the patient careplan. For now - create a new CP for each patient. may want only 1 per patient,
+    //but we're already creating a separate Patient instance for regimen. todo does need further thought...
+
     let ar = vo.data    //the actual data from the csv
+
+    let cpPatient = {resourceType:"CarePlan",id:'pat-' + ar[0],status:'active',intent:'order'}
+    addNarrative(cpPatient,"Patient plan")
+    cpPatient.subject = {reference:"Patient/"+patient.id}
+    cpPatient.category = [patientCategory]
+
+
+
 
     let cp = {resourceType:"CarePlan",id:ar[0],status:'active',intent:'order'}
     addNarrative(cp,"Regimen plan")
@@ -198,6 +214,8 @@ function makeRegimenCP(vo,patient) {
     cp.title = ar[4]
     cp.subject = {reference:"Patient/"+patient.id}
     cp.category = [regimenCategory]         //defined above - specifies this as a regimen plan
+    cp.partOf = [{reference:"CarePlan/" +cpPatient.id}]     //a reference to the Patient CP
+
 
     if (ar[8] == 'Y') {
         //the plan has been completed
@@ -235,6 +253,9 @@ function makeRegimenCP(vo,patient) {
     cp.period.start = convertDate(ar[6])
     cp.period.end = convertDate(ar[7])
     let arResources = [cp]
+
+    arResources.push(cpPatient)
+
 
     //add the Condition
     let condition = {resourceType:"Condition"}

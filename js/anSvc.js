@@ -31,7 +31,7 @@ angular.module("anApp")
         objColours.Immunization = '#aeb76c';
 
         //specific colours for act now
-        objColours.regimen =  '#93FF1A';
+        objColours.regimen =  '#ff8080';
 
 
         return {
@@ -276,6 +276,26 @@ angular.module("anApp")
 
                     //specific colours for careplans
                     if (resource.resourceType == 'CarePlan') {
+                        let cpCategory = resource.category[0].coding[0].code
+                        try {
+                            switch (cpCategory) {
+                                case  'patient' :
+                                    node.color = objColours.Patient
+                                    node.label = "Patient plan\nCarePlan"
+                                    break
+                                case 'regimen' :
+                                    node.color = objColours.regimen
+                                    node.label = "Regimen plan\nCarePlan"
+                                    break
+
+                                default :
+                                    node.label = "Cycle plan\nCarePlan"
+                                    break
+                            }
+                        } catch (ex) {
+
+                        }
+                        /*
                         try {
                             if (resource.category[0].coding[0].code == 'regimen') {
                                 node.color = objColours.regimen
@@ -286,6 +306,7 @@ angular.module("anApp")
                         } catch (e) {
 
                         }
+                        */
                     } else {
                         //get the narrative for the title
                         let text = getNarrative(resource)

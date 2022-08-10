@@ -1,0 +1,1495 @@
+{
+  "resourceType": "Bundle",
+  "id": "v2mapping-1",
+  "type": "collection",
+  "entry": [
+    {
+      "resource": {
+        "resourceType": "Provenance",
+        "id": "prov-1",
+        "recorded": "2022-08-08T08:23:20.658Z",
+        "entity": [
+          {
+            "role": "source",
+            "what": {
+              "reference": "Binary/bin-1"
+            }
+          }
+        ],
+        "agent": [],
+        "target": [
+          {
+            "reference": "DiagnosticReport/dr-1"
+          },
+          {
+            "reference": "Specimen/specimen-3"
+          },
+          {
+            "reference": "Procedure/procedure-5"
+          },
+          {
+            "reference": "Observation/observation-6"
+          },
+          {
+            "reference": "Condition/condition-7"
+          },
+          {
+            "reference": "Observation/observation-8"
+          },
+          {
+            "reference": "Observation/observation-9"
+          },
+          {
+            "reference": "Observation/observation-10"
+          },
+          {
+            "reference": "Observation/observation-11"
+          },
+          {
+            "reference": "Observation/observation-12"
+          },
+          {
+            "reference": "Observation/observation-13"
+          },
+          {
+            "reference": "Observation/observation-14"
+          },
+          {
+            "reference": "Observation/observation-15"
+          },
+          {
+            "reference": "Observation/observation-16"
+          },
+          {
+            "reference": "Observation/observation-17"
+          },
+          {
+            "reference": "Observation/observation-18"
+          },
+          {
+            "reference": "Observation/observation-19"
+          },
+          {
+            "reference": "Observation/observation-20"
+          },
+          {
+            "reference": "Observation/observation-21"
+          },
+          {
+            "reference": "Observation/observation-22"
+          },
+          {
+            "reference": "Observation/observation-23"
+          },
+          {
+            "reference": "Observation/observation-24"
+          },
+          {
+            "reference": "Observation/observation-25"
+          },
+          {
+            "reference": "Specimen/specimen-26"
+          },
+          {
+            "reference": "Procedure/procedure-28"
+          },
+          {
+            "reference": "Observation/observation-29"
+          },
+          {
+            "reference": "Condition/condition-30"
+          },
+          {
+            "reference": "Observation/observation-31"
+          },
+          {
+            "reference": "Observation/observation-32"
+          },
+          {
+            "reference": "Observation/observation-33"
+          },
+          {
+            "reference": "Observation/observation-34"
+          },
+          {
+            "reference": "Observation/observation-35"
+          }
+        ]
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Provenance/prov-1"
+    },
+    {
+      "resource": {
+        "resourceType": "Organization",
+        "id": "organization-1",
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>lab</div>"
+        },
+        "identifier": [
+          {
+            "value": "F1S039-F",
+            "system": "https://standards.digital.health.nz/ns/hpi-organisation-id"
+          }
+        ]
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Organization/organization-1"
+    },
+    {
+      "resource": {
+        "resourceType": "DiagnosticReport",
+        "id": "dr-1",
+        "status": "final",
+        "result": [
+          {
+            "reference": "Observation/observation-6"
+          },
+          {
+            "reference": "Observation/observation-8"
+          },
+          {
+            "reference": "Observation/observation-9"
+          },
+          {
+            "reference": "Observation/observation-10"
+          },
+          {
+            "reference": "Observation/observation-11"
+          },
+          {
+            "reference": "Observation/observation-12"
+          },
+          {
+            "reference": "Observation/observation-13"
+          },
+          {
+            "reference": "Observation/observation-14"
+          },
+          {
+            "reference": "Observation/observation-15"
+          },
+          {
+            "reference": "Observation/observation-16"
+          },
+          {
+            "reference": "Observation/observation-17"
+          },
+          {
+            "reference": "Observation/observation-18"
+          },
+          {
+            "reference": "Observation/observation-19"
+          },
+          {
+            "reference": "Observation/observation-20"
+          },
+          {
+            "reference": "Observation/observation-21"
+          },
+          {
+            "reference": "Observation/observation-22"
+          },
+          {
+            "reference": "Observation/observation-23"
+          },
+          {
+            "reference": "Observation/observation-24"
+          },
+          {
+            "reference": "Observation/observation-25"
+          },
+          {
+            "reference": "Observation/observation-29"
+          },
+          {
+            "reference": "Observation/observation-31"
+          },
+          {
+            "reference": "Observation/observation-32"
+          },
+          {
+            "reference": "Observation/observation-33"
+          },
+          {
+            "reference": "Observation/observation-34"
+          },
+          {
+            "reference": "Observation/observation-35"
+          }
+        ],
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>DiagnosticReport</div>"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "identifier": [
+          {
+            "type": {
+              "coding": [
+                {
+                  "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                  "code": "PLAC"
+                }
+              ]
+            },
+            "system": "https://standards.digital.health.nz/ns/hpi-facility-id",
+            "value": "F99999-B"
+          }
+        ],
+        "specimen": [
+          {
+            "reference": "Specimen/specimen-3"
+          },
+          {
+            "reference": "Specimen/specimen-26"
+          }
+        ]
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/DiagnosticReport/dr-1"
+    },
+    {
+      "resource": {
+        "resourceType": "Binary",
+        "id": "bin-1",
+        "data": "TVNIfF5+XCZ8TEFCU09MVVRJT05TfEYxUzAzOS1GfFBITlpCU3xOWkxNT0heRjAyMDk5LUpeSEZ8MjAyMjA4MDMxMjI3fHxPUlVeUjAxfDM4fFB8Mi40DQpQSUR8MXx8WlpaOTk5NF5eXl5OSEl8fExBQlRFU1ReSk9ITnx8MTk5NTExMTF8TQ0KT0JSfHwyMi05OTgwMDAxN3x8TkJTUF5OYXRpb25hbCBCb3dlbCBTY3JlZW5pbmcgUHJvZ15MfHwyMDIyMDEyNjE2NTl8fHx8OTZaWlpaXl5eXl5eXl5OWkxNT0heXl5eSEl8fHxUZXN0fDIwMjIwMTI2MTcwMXx8OTZaWlpaXl5eXl5eXl5OWkxNT0heXl5eSEleXl5GOTk5OTktQl5IUEkgRmFjaWxpdHkgSUReSEZ8fHx8fHwyMDIyMDgwMzEyMjV8fHxGfHx8fHx8fDEyM15eXl5eXl5eTlpMTU9IXl5eXkhJfHx8fHwyfHx8fHx8fHx8Rjk5OTk5LUJeSFBJIEZhY2lsaXR5IElEXkhGfEYxUzAzOS1GXkhQSSBGYWNpbGl0eSBJRF5IRg0KT0JYfDF8U1R8ODk4NzMtNF5TcGVjaW1lbiBpZGVudGlmaWVyXkxOfDF8MXx8fHx8fEYNCk9CWHwyfENFfDMzNzI1LTNeU2l0ZV5MTnwxfDkwNDAwMDheQXNjZW5kaW5nIENvbG9uXlNDVHx8fHx8fEYNCk9CWHwzfENFfDI5MzAwLTFeU2FtcGxlIHByb2NlZHVyZV5MTnwxfDI3NDAyNTAwNV5Qb2x5cGVjdG9teV5TQ1R8fHx8fHxGDQpPQlh8NHxOTXwzMzcyMy04XlNpemVeTE58MXwyfHx8fHx8Rg0KT0JYfDV8Q0V8ODQ4ODItMF5NYWluIGRpYWdub3Npc15MTnwxfDI4ODk5MDAxXlNxdWFtb3VzIGNlbGwgY2FyY2lub21hXlNDVHx8fHx8fEYNCk9CWHw2fENFfDgxMTY5LTVeTWFyZ2luIC0gcG9seXBlY3RvbXleTE58MXwxfHx8fHx8Rg0KT0JYfDd8Q0V8WE5aNTQ1OV5EeXNwbGFzaWFeTlp8MXw0MzE4NTAwOV5Mb3deU0NUfHx8fHx8Rg0KT0JYfDh8Q0V8MzM3MzItOV5IaXN0b2xvZ2ljIEdyYWRlXkxOfDF8Mzk1NTI5MDA3Xkxvdy1ncmFkZSAod2VsbC1tb2RlcmF0ZWx5IGRpZmZlcmVudGlhdGVkKV5TQ1R8fHx8fHxGDQpPQlh8OXxDRXxYTlo1NDYwXlBvb3IvdW5kaWZmZXJlbnRpYXRlZCB0dW1vdXJeTlp8MXw1MjEwMTAwNF5QcmVzZW50XlNDVHx8fHx8fEYNCk9CWHwxMHxDRXwzMzczOS00Xkx5bXBoYXRpYyBJbnZhc2lvbl5MTnwxfDM5NTcxNzAwMV5QcmVzZW50XlNDVHx8fHx8fEYNCk9CWHwxMXxDRXxYTlo1NDYxXlZlbm91cyBJbnZhc2lvbl5OWnwxfDM3MjI4NzAwOV5QcmVzZW50XlNDVHx8fHx8fEYNCk9CWHwxMnxOTXxYTlo1NDYyXlBlcmlwaGVyYWwgTWFyZ2luIFN0YXR1c15OWnwxfDAuMXx8fHx8fEYNCk9CWHwxM3xOTXw4NDg4My04XkRlcHRoIG9mIEludmFzaW9uXkxOfDF8MC4xfHx8fHx8Rg0KT0JYfDE0fE5NfDMzNzI4LTdeV2lkdGggb2YgVHVtb3VyXkxOfDF8MC4yfHx8fHx8Rg0KT0JYfDE1fENFfFhOWjU0NjNeSGFnZ2l0dCBsZXZlbF5OWnwxfDF8fHx8fHxGDQpPQlh8MTZ8Q0V8MzM3NDEtMF5QZXJpbmV1cmFsIGludmFzaW9uXkxOfDF8MzY5NzMxMDAwXlByZXNlbnReU0NUfHx8fHx8Rg0KT0JYfDE3fENFfDgxNjkxLTheTnVjbGVhciBleHByZXNzaW9uIG9mIE1MSDFeTE58MXwxfHx8fHx8Rg0KT0JYfDE4fENFfDgxNjkyLTZeTnVjbGVhciBleHByZXNzaW9uIG9mIE1TSDJeTE58MXwzfHx8fHx8Rg0KT0JYfDE5fENFfDgxNjkzLTReTnVjbGVhciBleHByZXNzaW9uIG9mIE1TSDZeTE58MXw0fHx8fHx8Rg0KT0JYfDIwfENFfDgxNjk0LTJeTnVjbGVhciBleHByZXNzaW9uIG9mIFBNUzJeTE58MXwyfHx8fHx8Rg0KT0JYfDIxfENFfDg1Mjk5LTZeQlJBRlY2MDBFIG11dGF0aW9uIHN0YXR1c15MTnwxfDF8fHx8fHxGDQpPQlh8MjJ8Q0V8WE5aNTQ2NV5CUkFGIG1ldGhvZCBvZiB0ZXN0aW5nXk5afDF8MTE3NjE3MDAyXkltbXVub2hpc3RvY2hlbWlzdHJ5XlNDVHx8fHx8fEYNCk9CWHwyM3xDRXw1ODQxNi05Xk1MSDEgUHJvbW90ZXIgTWV0aHlsYXRpb24gVGVzdF5MTnwxfDJ8fHx8fHxGDQpPQlh8MjR8U1R8ODk4NzMtNF5TcGVjaW1lbiBpZGVudGlmaWVyXkxOfDJ8Mnx8fHx8fEYNCk9CWHwyNXxDRXwzMzcyNS0zXlNpdGVeTE58Mnw1MzUwNTAwNl5BbnVzXlNDVHx8fHx8fEYNCk9CWHwyNnxDRXwyOTMwMC0xXlNhbXBsZSBwcm9jZWR1cmVeTE58MnwyNzQzMjMwMDheQmlvcHN5XlNDVHx8fHx8fEYNCk9CWHwyN3xOTXwzMzcyMy04XlNpemVeTE58MnwxfHx8fHx8Rg0KT0JYfDI4fENFfDg0ODgyLTBeTWFpbiBkaWFnbm9zaXNeTE58Mnw3ODEwNzYwMDheU2Vjb25kYXJ5IG1hbGlnbmFudCBuZW9wbGFzbV5TQ1R8fHx8fHxGDQpPQlh8Mjl8Q0V8WE5aNTQ1OV5EeXNwbGFzaWFeTlp8MnwyNTcyMzAwMF5EeXNwbGFzaWEgKG5vdCBmdXJ0aGVyIHNwZWNpZmllZCleU0NUfHx8fHx8Rg0KT0JYfDMwfENFfFhOWjU0NjBeUG9vci91bmRpZmZlcmVudGlhdGVkIHR1bW91cl5OWnwyfDI2NjcwMDBeQWJzZW50XlNDVHx8fHx8fEYNCk9CWHwzMXxDRXwzMzczOS00Xkx5bXBoYXRpYyBJbnZhc2lvbl5MTnwyfDM5NTcyMDAwOV5JbmRldGVybWluYXRlXlNDVHx8fHx8fEYNCk9CWHwzMnxDRXxYTlo1NDYxXlZlbm91cyBJbnZhc2lvbl5OWnwyfDEyNzQ5NTAwNF5JbmRldGVybWluYXRlXlNDVHx8fHx8fEYNCk9CWHwzM3xDRXwzMzc0MS0wXlBlcmluZXVyYWwgaW52YXNpb25eTE58MnwzOTYzOTMwMDVeSW5kZXRlcm1pbmF0ZV5TQ1R8fHx8fHxGDQo="
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Binary/bin-1"
+    },
+    {
+      "resource": {
+        "resourceType": "Patient",
+        "id": "patient-1",
+        "identifier": [
+          {
+            "system": "https://standards.digital.health.nz/ns/nhi-id",
+            "value": "ZZZ9994"
+          }
+        ],
+        "name": [
+          {
+            "family": "LABTEST",
+            "given": [
+              "JOHN"
+            ],
+            "text": "JOHN LABTEST"
+          }
+        ],
+        "birthDate": "1995-11-11",
+        "gender": "male",
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>JOHN LABTEST</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Patient/patient-1"
+    },
+    {
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "specimen-3",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "identifier": [
+          {
+            "system": "http://unknown.org",
+            "value": "1"
+          }
+        ],
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Ascending Colon</div>"
+        },
+        "collection": {
+          "extension": [
+            {
+              "url": "http://actnow/fhir/specimen-procedure",
+              "valueReference": {
+                "reference": "Procedure/procedure-5"
+              }
+            }
+          ]
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Specimen/specimen-3"
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "procedure-5",
+        "status": "completed",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Polypectomy</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Procedure/procedure-5"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-6",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33723-8",
+              "display": "Size"
+            }
+          ],
+          "text": "Size"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueQuantity": {
+          "value": 2
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Size</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-6"
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "id": "condition-7",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "28899001",
+              "display": "Squamous cell carcinoma"
+            }
+          ],
+          "text": "Squamous cell carcinoma"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Squamous cell carcinoma</div>"
+        },
+        "evidence": [
+          {
+            "detail": [
+              {
+                "reference": "Observation/observation-10"
+              }
+            ]
+          },
+          {
+            "detail": [
+              {
+                "reference": "Observation/observation-11"
+              }
+            ]
+          }
+        ]
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Condition/condition-7"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-8",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "81169-5",
+              "display": "Margin - polypectomy"
+            }
+          ],
+          "text": "Margin - polypectomy"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "1"
+            }
+          ],
+          "text": "1"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Margin - polypectomy</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-8"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-9",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5459",
+              "display": "Dysplasia"
+            }
+          ],
+          "text": "Dysplasia"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "43185009",
+              "display": "Low"
+            }
+          ],
+          "text": "Low"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Dysplasia</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-9"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-10",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33732-9",
+              "display": "Histologic Grade"
+            }
+          ],
+          "text": "Histologic Grade"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "395529007",
+              "display": "Low-grade (well-moderately differentiated)"
+            }
+          ],
+          "text": "Low-grade (well-moderately differentiated)"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Histologic Grade</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-10"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-11",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5460",
+              "display": "Poor/undifferentiated tumour"
+            }
+          ],
+          "text": "Poor/undifferentiated tumour"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "52101004",
+              "display": "Present"
+            }
+          ],
+          "text": "Present"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Poor/undifferentiated tumour</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-11"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-12",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33739-4",
+              "display": "Lymphatic Invasion"
+            }
+          ],
+          "text": "Lymphatic Invasion"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "395717001",
+              "display": "Present"
+            }
+          ],
+          "text": "Present"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Lymphatic Invasion</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-12"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-13",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5461",
+              "display": "Venous Invasion"
+            }
+          ],
+          "text": "Venous Invasion"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "372287009",
+              "display": "Present"
+            }
+          ],
+          "text": "Present"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Venous Invasion</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-13"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-14",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5462",
+              "display": "Peripheral Margin Status"
+            }
+          ],
+          "text": "Peripheral Margin Status"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueQuantity": {
+          "value": 0.1
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Peripheral Margin Status</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-14"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-15",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "84883-8",
+              "display": "Depth of Invasion"
+            }
+          ],
+          "text": "Depth of Invasion"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueQuantity": {
+          "value": 0.1
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Depth of Invasion</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-15"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-16",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33728-7",
+              "display": "Width of Tumour"
+            }
+          ],
+          "text": "Width of Tumour"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueQuantity": {
+          "value": 0.2
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Width of Tumour</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-16"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-17",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5463",
+              "display": "Haggitt level"
+            }
+          ],
+          "text": "Haggitt level"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "1"
+            }
+          ],
+          "text": "1"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Haggitt level</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-17"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-18",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33741-0",
+              "display": "Perineural invasion"
+            }
+          ],
+          "text": "Perineural invasion"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "369731000",
+              "display": "Present"
+            }
+          ],
+          "text": "Present"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Perineural invasion</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-18"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-19",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "81691-8",
+              "display": "Nuclear expression of MLH1"
+            }
+          ],
+          "text": "Nuclear expression of MLH1"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "1"
+            }
+          ],
+          "text": "1"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Nuclear expression of MLH1</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-19"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-20",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "81692-6",
+              "display": "Nuclear expression of MSH2"
+            }
+          ],
+          "text": "Nuclear expression of MSH2"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "3"
+            }
+          ],
+          "text": "3"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Nuclear expression of MSH2</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-20"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-21",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "81693-4",
+              "display": "Nuclear expression of MSH6"
+            }
+          ],
+          "text": "Nuclear expression of MSH6"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "4"
+            }
+          ],
+          "text": "4"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Nuclear expression of MSH6</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-21"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-22",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "81694-2",
+              "display": "Nuclear expression of PMS2"
+            }
+          ],
+          "text": "Nuclear expression of PMS2"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "2"
+            }
+          ],
+          "text": "2"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Nuclear expression of PMS2</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-22"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-23",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "85299-6",
+              "display": "BRAFV600E mutation status"
+            }
+          ],
+          "text": "BRAFV600E mutation status"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "1"
+            }
+          ],
+          "text": "1"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>BRAFV600E mutation status</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-23"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-24",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5465",
+              "display": "BRAF method of testing"
+            }
+          ],
+          "text": "BRAF method of testing"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "117617002",
+              "display": "Immunohistochemistry"
+            }
+          ],
+          "text": "Immunohistochemistry"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>BRAF method of testing</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-24"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-25",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "58416-9",
+              "display": "MLH1 Promoter Methylation Test"
+            }
+          ],
+          "text": "MLH1 Promoter Methylation Test"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-3"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "code": "2"
+            }
+          ],
+          "text": "2"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>MLH1 Promoter Methylation Test</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-25"
+    },
+    {
+      "resource": {
+        "resourceType": "Specimen",
+        "id": "specimen-26",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "identifier": [
+          {
+            "system": "http://unknown.org",
+            "value": "2"
+          }
+        ],
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Anus</div>"
+        },
+        "collection": {
+          "extension": [
+            {
+              "url": "http://actnow/fhir/specimen-procedure",
+              "valueReference": {
+                "reference": "Procedure/procedure-28"
+              }
+            }
+          ]
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Specimen/specimen-26"
+    },
+    {
+      "resource": {
+        "resourceType": "Procedure",
+        "id": "procedure-28",
+        "status": "completed",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Biopsy</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Procedure/procedure-28"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-29",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33723-8",
+              "display": "Size"
+            }
+          ],
+          "text": "Size"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-26"
+        },
+        "valueQuantity": {
+          "value": 1
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Size</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-29"
+    },
+    {
+      "resource": {
+        "resourceType": "Condition",
+        "id": "condition-30",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "781076008",
+              "display": "Secondary malignant neoplasm"
+            }
+          ],
+          "text": "Secondary malignant neoplasm"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Secondary malignant neoplasm</div>"
+        },
+        "evidence": [
+          {
+            "detail": [
+              {
+                "reference": "Observation/observation-32"
+              }
+            ]
+          }
+        ]
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Condition/condition-30"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-31",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5459",
+              "display": "Dysplasia"
+            }
+          ],
+          "text": "Dysplasia"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-26"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "25723000",
+              "display": "Dysplasia (not further specified)"
+            }
+          ],
+          "text": "Dysplasia (not further specified)"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Dysplasia</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-31"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-32",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5460",
+              "display": "Poor/undifferentiated tumour"
+            }
+          ],
+          "text": "Poor/undifferentiated tumour"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-26"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "2667000",
+              "display": "Absent"
+            }
+          ],
+          "text": "Absent"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Poor/undifferentiated tumour</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-32"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-33",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33739-4",
+              "display": "Lymphatic Invasion"
+            }
+          ],
+          "text": "Lymphatic Invasion"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-26"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "395720009",
+              "display": "Indeterminate"
+            }
+          ],
+          "text": "Indeterminate"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Lymphatic Invasion</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-33"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-34",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "code": "XNZ5461",
+              "display": "Venous Invasion"
+            }
+          ],
+          "text": "Venous Invasion"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-26"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "127495004",
+              "display": "Indeterminate"
+            }
+          ],
+          "text": "Indeterminate"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Venous Invasion</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-34"
+    },
+    {
+      "resource": {
+        "resourceType": "Observation",
+        "id": "observation-35",
+        "status": "final",
+        "subject": {
+          "reference": "Patient/patient-1"
+        },
+        "effectiveDateTime": "2022-08-03",
+        "code": {
+          "coding": [
+            {
+              "system": "http://loinc.org",
+              "code": "33741-0",
+              "display": "Perineural invasion"
+            }
+          ],
+          "text": "Perineural invasion"
+        },
+        "performer": [
+          {
+            "reference": "Organization/organization-1"
+          }
+        ],
+        "specimen": {
+          "reference": "Specimen/specimen-26"
+        },
+        "valueCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "396393005",
+              "display": "Indeterminate"
+            }
+          ],
+          "text": "Indeterminate"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns='http://www.w3.org/1999/xhtml'>Perineural invasion</div>"
+        }
+      },
+      "fullUrl": "http://canshare.co.nz/fhir/Observation/observation-35"
+    }
+  ]
+}

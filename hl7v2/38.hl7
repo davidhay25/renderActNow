@@ -1,0 +1,36 @@
+MSH|^~\&|LABSOLUTIONS|F1S039-F|PHNZBS|NZLMOH^F02099-J^HF|202208031227||ORU^R01|38|P|2.4
+PID|1||ZZZ9994^^^^NHI||LABTEST^JOHN||19951111|M
+OBR||22-99800017||NBSP^National Bowel Screening Prog^L||202201261659||||96ZZZZ^^^^^^^^NZLMOH^^^^HI|||Test|202201261701||96ZZZZ^^^^^^^^NZLMOH^^^^HI^^^F99999-B^HPI Facility ID^HF||||||202208031225|||F|||||||123^^^^^^^^NZLMOH^^^^HI|||||2|||||||||F99999-B^HPI Facility ID^HF|F1S039-F^HPI Facility ID^HF
+OBX|1|ST|89873-4^Specimen identifier^LN|1|1||||||F
+OBX|2|CE|33725-3^Site^LN|1|9040008^Ascending Colon^SCT||||||F
+OBX|3|CE|29300-1^Sample procedure^LN|1|274025005^Polypectomy^SCT||||||F
+OBX|4|NM|33723-8^Size^LN|1|2||||||F
+OBX|5|CE|84882-0^Main diagnosis^LN|1|28899001^Squamous cell carcinoma^SCT||||||F
+OBX|6|CE|81169-5^Margin - polypectomy^LN|1|1||||||F
+OBX|7|CE|XNZ5459^Dysplasia^NZ|1|43185009^Low^SCT||||||F
+OBX|8|CE|33732-9^Histologic Grade^LN|1|395529007^Low-grade (well-moderately differentiated)^SCT||||||F
+OBX|9|CE|XNZ5460^Poor/undifferentiated tumour^NZ|1|52101004^Present^SCT||||||F
+OBX|10|CE|33739-4^Lymphatic Invasion^LN|1|395717001^Present^SCT||||||F
+OBX|11|CE|XNZ5461^Venous Invasion^NZ|1|372287009^Present^SCT||||||F
+OBX|12|NM|XNZ5462^Peripheral Margin Status^NZ|1|0.1||||||F
+OBX|13|NM|84883-8^Depth of Invasion^LN|1|0.1||||||F
+OBX|14|NM|33728-7^Width of Tumour^LN|1|0.2||||||F
+OBX|15|CE|XNZ5463^Haggitt level^NZ|1|1||||||F
+OBX|16|CE|33741-0^Perineural invasion^LN|1|369731000^Present^SCT||||||F
+OBX|17|CE|81691-8^Nuclear expression of MLH1^LN|1|1||||||F
+OBX|18|CE|81692-6^Nuclear expression of MSH2^LN|1|3||||||F
+OBX|19|CE|81693-4^Nuclear expression of MSH6^LN|1|4||||||F
+OBX|20|CE|81694-2^Nuclear expression of PMS2^LN|1|2||||||F
+OBX|21|CE|85299-6^BRAFV600E mutation status^LN|1|1||||||F
+OBX|22|CE|XNZ5465^BRAF method of testing^NZ|1|117617002^Immunohistochemistry^SCT||||||F
+OBX|23|CE|58416-9^MLH1 Promoter Methylation Test^LN|1|2||||||F
+OBX|24|ST|89873-4^Specimen identifier^LN|2|2||||||F
+OBX|25|CE|33725-3^Site^LN|2|53505006^Anus^SCT||||||F
+OBX|26|CE|29300-1^Sample procedure^LN|2|274323008^Biopsy^SCT||||||F
+OBX|27|NM|33723-8^Size^LN|2|1||||||F
+OBX|28|CE|84882-0^Main diagnosis^LN|2|781076008^Secondary malignant neoplasm^SCT||||||F
+OBX|29|CE|XNZ5459^Dysplasia^NZ|2|25723000^Dysplasia (not further specified)^SCT||||||F
+OBX|30|CE|XNZ5460^Poor/undifferentiated tumour^NZ|2|2667000^Absent^SCT||||||F
+OBX|31|CE|33739-4^Lymphatic Invasion^LN|2|395720009^Indeterminate^SCT||||||F
+OBX|32|CE|XNZ5461^Venous Invasion^NZ|2|127495004^Indeterminate^SCT||||||F
+OBX|33|CE|33741-0^Perineural invasion^LN|2|396393005^Indeterminate^SCT||||||F

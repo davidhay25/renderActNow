@@ -165,12 +165,15 @@ angular.module("anApp")
                         $scope.allEntries = []
                         data.data.entry.forEach(function (entry) {
                             //keep the patient out of it. It clutters the graph
+                            //todo maybe exclude DR (save in a different object. Have observations as contained
                             if (entry.resource.resourceType !== 'Patient'){
                                 $scope.allEntries.push(entry)
                             } else {
                                 $scope.selectedPatient = entry.resource
                             }
                         })
+
+
                         createCyclesArray()     //and hashAllObsById
                         createRegimensArray()       //must come after createCyst
 
@@ -281,8 +284,6 @@ angular.module("anApp")
 
                     $scope.$digest();       //as the event occurred outside of angular...
                 })
-
-
             }
 
             //only 1 at present....(and likely to remain if we have a specific patient resource per regimen
@@ -419,9 +420,6 @@ angular.module("anApp")
                                         $scope.hashMedObs[ref].push(resource)
                                     }
 
-
-
-
                                 })
                             }
                             break
@@ -429,8 +427,9 @@ angular.module("anApp")
 
                 })
 
-                //sort the hashAllObs bu date
+                //sort the hashAllObs by date
                 Object.keys($scope.hashAllObs).forEach(function (key) {
+
                     $scope.hashAllObs[key].sort(function(a,b) {
                         if (a.effectiveDateTime > b.effectiveDateTime) {
                             return 1
@@ -439,6 +438,7 @@ angular.module("anApp")
                         }
                         }
                     )
+
                 })
 
                 //now create the cycles
