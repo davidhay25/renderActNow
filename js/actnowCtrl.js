@@ -25,6 +25,14 @@ angular.module("anApp")
 
 
                 })
+            
+            //load the sample bundle with lab data generated from v2 message
+            
+            $http.get("http://actnow.canshare.co.nz:9092/baseR4/Bundle/v2mapping-1").then(
+                function (data) {
+
+                }
+            )
 
             $scope.validate = function() {
                 $scope.validating = true

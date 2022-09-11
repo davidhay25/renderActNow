@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+
+    <title>Act-Now Sample builder</title>
+
+    <script src="js/libs/jquery-1.9.0.min.js"></script>
+    <script src="js/libs/angular.min1-5.js"></script>
+    <script src="js/libs/ui-bootstrap-tpls-2.0.1.min.js"></script>
+    <script src="js/libs/moment.min.js"></script>
+    <script src="js/libs/angular.min1-5.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/vis.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="css/main.css"/>
+
+    <link rel="stylesheet" type="text/css" href="css/jsTreeStyle.css"/>
+    <link rel="stylesheet" type="text/css" href="css/jsTreeThemes/proton/style.css"/>
+
+    <script>
+        angular.module("anApp",['ui.bootstrap']).config(function($locationProvider) {
+
+            // enable html5Mode for pushstate ('#'-less URLs)
+            $locationProvider.html5Mode(true);
+            $locationProvider.hashPrefix('!');
+        });
+        angular.module("anApp").constant("moment", moment);
+
+    </script>
+
+    <script src="js/sampleBuilderCtrl.js"></script>
+    <script src="js/libs/vis.min.js"></script>
+    <script src="js/anSvc.js"></script>
+    <script src="js/findStandardCtrl.js"></script>
+
+    <script src="js/libs/jstree.min.js"></script>
+
+    <script src="js/filters.js"></script>
+
+    <style>
+        #graph {
+            width: 100%;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+
+        #medTimeline {
+            width: 100%;
+
+        }
+
+        .vis-item.red {
+            color: white;
+            background-color: lightsalmon;
+            border-color: darkred;
+        }
+
+        .vis-item.rx {
+            color: white;
+            background-color: #cc9900;
+            border-color: darkred;
+        }
+
+        .scroll {
+            height: 800px;
+            overflow-y: scroll;
+        }
+
+        .scrollQRList {
+            height: 400px;
+            overflow-y: scroll;
+        }
+
+    </style>
+
+</head>
+
+
+<body style="padding: 8px;padding-top: 80px">
+
+    <div ng-app="anApp" ng-controller="sampleBuilderCtrl" class="container-fluid">
+
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+
+        <div class="container-fluid">
+            <div class="col-md-3">
+
+                    <span>
+                        <a class="navbar-brand" href="#">
+                            CanShare: ACT-Now Sample builder
+                        </a>
+                    </span>
+            </div>
+
+            <div class="col-md-4">
+                <div class="navbar-text">
+
+                    {{dataServer}}
+
+
+                </div>
+
+            </div>
+
+            <div class="col-md-1 col-sm-1">
+                <div class="navbar-form navbar-left">
+                    <img ng-show="showWaiting" src="css/ajax_loader_blue_32.gif"/>
+
+                </div>
+            </div>
+
+            <div class="col-md-1 col-sm-1">
+
+            </div>
+
+            <div class="col-md-3 col-sm-3">
+
+
+            </div>
+        </div>
+    </nav>
+
+    <br/>
+
+
+        <div class="row">
+            <div class="col-md-4">
+                <button class="btn btn-link" ng-click="submitServer(bundle1)">Submit</button>
+                <pre>{{bundle1 | json}}</pre>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-link" ng-click="submitServer(bundle2)">Submit</button>
+                <pre>{{bundle2 | json}}</pre>
+            </div>
+            <div class="col-md-4">
+                <button class="btn btn-link" ng-click="submitServer(bundle3)">Submit</button>
+                <pre>{{bundle3 | json}}</pre>
+            </div>
+        </div>
+
+
+
+
+</div>
+
+</body>
+</html>

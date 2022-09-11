@@ -14,7 +14,7 @@ const fs = require('fs');
 const axios = require('axios').default;
 
 let countToImport = 100
-let updateServer = true
+let updateServer = false //true
 
 //definitions
 let regimenCategory = {coding:[{system:"http:canshare.com",code:"regimen"}]}
@@ -28,7 +28,7 @@ let extCycleCount = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle
 
 let extDoseAdjustReason = "http://clinfhir.com/fhir/StructureDefinition/canshare-dose-adjustment-reason"
 let extPrescribedDose = "http://clinfhir.com/fhir/StructureDefinition/canshare-prescribed-dose"
-let extLaterality = "http://clinfhir.com/fhir/StructureDefinition/canshare-leterality"
+let extLaterality = "http://clinfhir.com/fhir/StructureDefinition/canshare-laterality"
 let extTreatmentIntent = "http://canshare.co.nz/fhir/StructureDefinition/tx-intent"
 
 let hashRegimen = {}
@@ -95,7 +95,7 @@ async function insertDataOneRegimen(regimenId) {
     patient.identifier = [{system:"http://mosaic.com/patients",value:patientId}]
     addNarrative(patient,"Identifier: " + patientId)
 
-    //create the bundle of resources that represents a single regimen
+    //create the transacton bundle of resources that represents a single regimen
     let bundle = createBundle(regimenId,patient)
     if (bundle) {
         //console.log(JSON.stringify(bundle,null,2))

@@ -3,13 +3,15 @@ let http = require('http');
 
 let port = process.env.port;
 if (! port) {
-    port=80;
+    port=8080;
 } else {
     console.log('setting port to ' + port)
 }
 
 
 //let port = 9091
+// instructions for ssl nginx
+//https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04
 
 const actnowModule = require("./serverModuleActNow");
 const bodyParser = require('body-parser')

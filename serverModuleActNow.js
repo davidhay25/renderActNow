@@ -9,6 +9,7 @@ function setup(app,sr) {
     serverRoot = sr
 
 
+
     app.get('/an/fhir/Patient/:patientId/\[$]everything',async function(req,res){
 
 
@@ -19,7 +20,6 @@ function setup(app,sr) {
 
         res.json(bundle)
     })
-
 
     //get a summary of all Q from the forms server
     app.get('/an/getQSummary',async function(req,res){

@@ -434,91 +434,106 @@
         <uib-tab heading="Pathology reports">
             <br/>
 
-            <div class="alert alert-warning">This has all report forms (QR resources) for all patients currently
-                in the <a target="_blank" href="https://canshare.co.nz/dataStandards.html"> structured path public page</a>.
-            Next up will be to link to selected patient. </div>
 
-            <!--
 
-            <button class="btn-link btn pull-right" ng-click="loadReports()">Load reports</button>
 
-            -->
+            <uib-tabset>
+                <uib-tab heading = "Diagnostic Report  (from v2)">
 
-            <div class="row">
-                <div class="col-md-3">
 
-                    <div class="scrollQRList">
-                        <div ng-repeat="(k,v) in reportQR">
-                            <h4>{{k}}</h4>
-                            <div ng-repeat="item in v" style="margin-left: 8px"
-                                 class="clickable"
-                                 ng-click="selectQR(item)">
-                                {{item.date | date}}
-                            </div>
+                    <a href="http://clinfhir.com/bundleVisualizer.html?http://actnow.canshare.co.nz:9092/baseR4/Bundle/v2mapping-1" target="_blank">Display in Bundle Visualizer</a>
 
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-9">
-                    <uib-tabset>
-                        <uib-tab heading="Report">
-                            <ng-include src = "'includes/renderFormForDisplay.html'"></ng-include>
-                        </uib-tab>
 
-                        <uib-tab heading="Report Definition (Tree)">
-                            <div class="row">
-                                <div class="col-md-5">
-                                    <div id="qTree"></div>
-                                </div>
-                                <div class="col-md-7">
-                                    <div class="scrollQRList">
-                                        <pre>{{ selectedNode.data.item | json}}</pre>
+                </uib-tab>
+                <uib-tab heading = "Examples entered by clinicians">
+                    <div class="alert alert-warning">This has all report forms (QR resources) for all patients currently
+                        in the <a target="_blank" href="https://canshare.co.nz/dataStandards.html"> structured path public page</a>.
+                        Next up will be to link to selected patient. </div>
+
+
+                    <div class="row">
+                        <div class="col-md-3">
+
+                            <div class="scrollQRList">
+                                <div ng-repeat="(k,v) in reportQR">
+                                    <h4>{{k}}</h4>
+                                    <div ng-repeat="item in v" style="margin-left: 8px"
+                                         class="clickable"
+                                         ng-click="selectQR(item)">
+                                        {{item.date | date}}
                                     </div>
 
                                 </div>
                             </div>
+                        </div>
+                        <div class="col-md-9">
+                            <uib-tabset>
+                                <uib-tab heading="Report">
+                                    <ng-include src = "'includes/renderFormForDisplay.html'"></ng-include>
+                                </uib-tab>
+
+                                <uib-tab heading="Report Definition (Tree)">
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <div id="qTree"></div>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <div class="scrollQRList">
+                                                <pre>{{ selectedNode.data.item | json}}</pre>
+                                            </div>
+
+                                        </div>
+                                    </div>
 
 
 
 
 
 
-                        </uib-tab>
+                                </uib-tab>
 
 
-                        <uib-tab heading="Report Audit">
-                            <pre>{{audit | json}}</pre>
-                        </uib-tab>
+                                <uib-tab heading="Report Audit">
+                                    <pre>{{audit | json}}</pre>
+                                </uib-tab>
 
-                        <uib-tab heading="Report Json">
-                            <pre>{{selectedQR | json}}</pre>
-                        </uib-tab>
-
-
-                        <uib-tab heading="Report Definition Json">
-                            <pre>{{selectedQ | json}}</pre>
-                        </uib-tab>
-                    </uib-tabset>
+                                <uib-tab heading="Report Json">
+                                    <pre>{{selectedQR | json}}</pre>
+                                </uib-tab>
 
 
-
-
-
-                </div>
-            </div>
+                                <uib-tab heading="Report Definition Json">
+                                    <pre>{{selectedQ | json}}</pre>
+                                </uib-tab>
+                            </uib-tabset>
 
 
 
 
 
-            reports for this patient. from QR from structured path. ?does report need tumour type
-            Right now, these are all reports for all patients as there is no patient link.
-            Idea is to show what's possible...
+                        </div>
+                    </div>
+
+                    from QR from structured path. ?does report need tumour type
+                    Right now, these are all reports for all patients as there is no patient link.
+                    Idea is to show what's possible...
 
 
-            <em>Note that this data is derived from Sample reports entered into the StructuredPath
-            tool, and so are represented as QuestionnaireResponse resources. In real life these would
-            be DiagnosticReport/Observation - but the actual data present should be the same</em>
+                    <em>Note that this data is derived from Sample reports entered into the StructuredPath
+                        tool, and so are represented as QuestionnaireResponse resources. In real life these would
+                        be DiagnosticReport/Observation - but the actual data present should be the same</em>
+
+                </uib-tab>
+            </uib-tabset>
+
+
+
+
+
+
+
+
+
 
 
 
