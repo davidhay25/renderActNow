@@ -8,8 +8,6 @@ let serverRoot;
 function setup(app,sr) {
     serverRoot = sr
 
-
-
     app.get('/an/fhir/Patient/:patientId/\[$]everything',async function(req,res){
 
 
@@ -130,6 +128,29 @@ console.log(url)
         }
 
     })
+
+
+
+    //an endpoint to proxy to the server
+    app.get('/an/fhir/*',async function(req,res){
+        //console.log(req.originalUrl)
+        let ar = req.originalUrl.split('/')
+        let urlToServer = serverRoot +  decodeURI(ar[3])         //the query passed in by the client
+
+
+        //console.log(urlToServer)
+        try {
+            let bundle = await getBundle(urlToServer)
+            res.json(bundle)
+        } catch (ex) {
+            res.json(ex)
+        }
+
+
+
+
+    })
+
 
 
 
