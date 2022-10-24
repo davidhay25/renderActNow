@@ -27,12 +27,13 @@ angular.module("anApp")
                 })
             
             //load the sample bundle with lab data generated from v2 message
-            
+            /*
             $http.get("http://actnow.canshare.co.nz:9092/baseR4/Bundle/v2mapping-1").then(
                 function (data) {
 
                 }
             )
+            */
 
             $scope.validate = function() {
                 $scope.validating = true
@@ -55,8 +56,6 @@ angular.module("anApp")
                 function makeValidationSummary(OO) {
                     $scope.validationIssues = []
                     OO.issue.forEach(function (iss) {
-
-
 
                         let item = {type: iss.severity}
                         item.iss = iss
@@ -83,7 +82,6 @@ angular.module("anApp")
                             console.log(ex,"Error processing issue:" )
                             console.log(JSON.stringify(iss))
                         }
-
                     })
                 }
             }
@@ -96,6 +94,55 @@ angular.module("anApp")
                 console.log(inx)
                 $scope.input.validationResource =  $scope.allResourcesBundle.entry[inx]
             }
+
+
+
+            //select patient on diagnosis
+            $scope.selectByIdentifier = function() {
+                $uibModal.open({
+                    backdrop: 'static',      //means can't close by clicking on the backdrop.
+                    keyboard: false,       //same as above.
+                    //size: 'sm',
+                    templateUrl: 'modalTemplates/selectByIdentifier.html',
+                    controller: function ($scope) {
+                        $scope.input = {}
+                        $scope.input.system = "http://clinfhir.com"
+                        $scope.input.value = "patient5"
+                        $scope.select = function () {
+                            let vo = {system:$scope.input.system,value:$scope.input.value}
+                            $scope.$close(vo)
+                        }
+                    }
+                }).result.then(
+                    function (vo) {
+                        console.log(vo)
+                        let qry = `/ds/fhir/Patient?identifier=${vo.system}|${vo.value}`
+                        $http.get(qry).then(
+                            function (data) {
+                                console.log(data)
+                                if (data.data.entry) {
+                                    switch (data.data.entry.length) {
+                                        case 0 :
+                                            alert("There were no matching patients")
+                                            break
+                                        case 1 :
+                                            let patient = data.data.entry[0].resource
+                                            console.log(patient)
+                                            $scope.loadPatient(patient.id)
+                                            break
+                                        default :
+                                            alert(`There were ${data.data.entry.length} patients with this identifier. This is an error. Try a different one.`)
+                                            break
+                                    }
+                                } else {
+                                    alert("No matches")
+                                }
+                            }
+                        )
+                    }
+                )
+            }
+
 
             //select patient on diagnosis
             $scope.selectByDx = function() {
@@ -294,33 +341,36 @@ angular.module("anApp")
                 })
             }
 
-            //only 1 at present....(and likely to remain if we have a specific patient resource per regimen
+            //only 1 per patient at present....(and likely to remain if we have a specific patient resource per regimen
             function createRegimensArray() {
                 $scope.arRegimens = []
                 $scope.allEntries.forEach(function (entry) {
                     let resource = entry.resource
 
-                    if (resource.resourceType == 'CarePlan' && resource.category[0].coding[0].code == 'regimen') {
+
+                    if (resource.resourceType == 'CarePlan' && getCarePlanCategory(resource) == 'regimen') {
 
 
-                        let vo = {resource:resource,supportingInfo:[]}
-                        if (resource.supportingInfo) {
-                            resource.supportingInfo.forEach(function(si){
-                                vo.supportingInfo.push($scope.hashAllObsById[si.reference])
-                               // let ar = si.
-                            })
+                            let vo = {resource:resource,supportingInfo:[]}
+                            if (resource.supportingInfo) {
+                                resource.supportingInfo.forEach(function(si){
+                                    vo.supportingInfo.push($scope.hashAllObsById[si.reference])
+                                    // let ar = si.
+                                })
+                            }
+
+                            //now add all the Observations that refer to this CP via a 'basedOn link
+                            //todo - haven't got any yet
+
+                            $scope.arRegimens.push(vo)
+                            //find the Condition that this regimen refers to.
+                            //todo when there are multiple regimens, this will need to change...
+                            findCondition(resource)
                         }
 
-                        //now add all the Observations that refer to this CP via a 'basedOn link
-                        //todo - haven't got any yet
 
 
-                        $scope.arRegimens.push(vo)
-                        //find the Condition that this regimen refers to.
-                        //todo when there are multiple regimens, this will need to change...
-                        findCondition(resource)
 
-                    }
 
 
 
@@ -349,7 +399,14 @@ angular.module("anApp")
                     })
                 }
 
+            }
 
+            function getCarePlanCategory(cp) {
+                let cpType
+                if (cp.category && cp.category[0].coding) {
+                    cpType = cp.category[0].coding[0].code
+                }
+                return cpType
             }
 
             //create an array to support a display of cycles. Also the hash of unique dates for the timeline..
@@ -454,7 +511,7 @@ angular.module("anApp")
                 $scope.allEntries.forEach(function (entry) {
                     let resource = entry.resource
 
-                    if (resource.resourceType == 'CarePlan' && resource.category[0].coding[0].code == 'cycle') {
+                    if (resource.resourceType == 'CarePlan' && getCarePlanCategory(resource) == 'cycle') {
                         //this is a cycle CP
                         let cycle = {}
                         cycle.period = resource.period
@@ -480,21 +537,31 @@ angular.module("anApp")
                             h.forEach(function (MA) {
                                 let admin = {}      //a vo for a single administration
                                 admin.drugName = MA.medicationCodeableConcept.text
-                                admin.route = MA.dosage.route.text
-                                admin.dose = MA.dosage.text
+                                if (MA.dosage) {
+                                    admin.dose = MA.dosage.text
+                                    if (MA.dosage.route) {
+                                        admin.route = MA.dosage.route.text
+                                    }
+                                }
 
-                                let startAdmin = moment(MA.effectivePeriod.start)
-                                let endAdmin = moment(MA.effectivePeriod.end)
 
-                                admin.start = MA.effectivePeriod.start
+                                //actually should always be a period
+                                if (MA.effectivePeriod) {
+                                    let startAdmin = moment(MA.effectivePeriod.start)
+                                    let endAdmin = moment(MA.effectivePeriod.end)
+                                    admin.start = MA.effectivePeriod.start
+                                    admin.length = endAdmin.diff(startAdmin,'minutes')
+                                }
+
+
+
+
                                 admin.day = getSingleExtension(MA,extCycleDay,'valueString')
 
-                                admin.length = endAdmin.diff(startAdmin,'minutes')
+
                                 admin.resource = MA
 
                                 admin.adjust = getMultiExtension(MA,extDoseAdjustReason,'valueString')
-                               // let ar = getMultiExtension(MA,extDoseAdjustReason,'valueString')
-                            //if (admin.adjust.length > 0) {console.log(admin.adjust,cycle.cycleNumber)}
 
                                 cycle.admins.push(admin)
                             })

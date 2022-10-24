@@ -1,0 +1,56 @@
+
+<div>
+  <div class="modal-header">
+
+    <div class="row">
+      <div class="col-md-6 col-sm-6 ">
+
+        <h3>Select by Identifier</h3>
+
+      </div>
+
+      <div class="col-md-1 col-sm-1">
+        <div class="navbar-form navbar-left">
+          <img ng-show="showWaiting" src="css/ajax_loader_blue_32.gif"/>
+
+        </div>
+      </div>
+
+      <div class="col-md-5 col-sm-5">
+        <button class="btn btn-primary pull-right"
+
+                ng-click="select()">Select</button>
+        <button class="btn btn-link pull-right" ng-click="$dismiss()">Cancel</button>
+
+      </div>
+
+    </div>
+
+  </div>
+  <div class="modal-body">
+
+
+    <div class="row" >
+      <div class="col-sm-3 col-md-3">
+        System
+      </div>
+      <div class="col-sm-9 col-md-9">
+        <input type="text" class="form-control" ng-model="input.system"/>
+      </div>
+    </div>
+
+    <div class="row" >
+      <div class="col-sm-3 col-md-3">
+        Value
+      </div>
+      <div class="col-sm-9 col-md-9">
+        <input type="text" class="form-control" ng-model="input.value"/>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="modal-header">
+
+  </div>
+</div>

@@ -124,18 +124,36 @@
 
     <br/>
 
+        <div class="row" ng-show = 'OO'>
+            <div class="col-md-6">
+                <pre>{{OO | json}}</pre>
+            </div>
+            <div class="col-md-6">
+                <div ng-repeat = "entry in bundle.entry">
+                    <div>Index: {{$index + 1}}</div>
+                    <pre>{{entry.resource | json}}</pre>
+                </div>
+
+            </div>
+
+
+        </div>
 
         <div class="row">
             <div class="col-md-4">
                 <button class="btn btn-link" ng-click="submitServer(bundle1)">Submit</button>
+                <div> <button class="btn btn-link" ng-click="validate(bundle1,0)">Validate</button></div>
+                <pre ng-show="validationResult[0]">{{validationResult[0] | json}}</pre>
                 <pre>{{bundle1 | json}}</pre>
             </div>
             <div class="col-md-4">
                 <button class="btn btn-link" ng-click="submitServer(bundle2)">Submit</button>
+                <div> <button class="btn btn-link" ng-click="validate(bundle3)">Validate</button></div>
                 <pre>{{bundle2 | json}}</pre>
             </div>
             <div class="col-md-4">
                 <button class="btn btn-link" ng-click="submitServer(bundle3)">Submit</button>
+                <div> <button class="btn btn-link" ng-click="validate(bundle3)">Validate</button></div>
                 <pre>{{bundle3 | json}}</pre>
             </div>
         </div>

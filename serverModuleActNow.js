@@ -135,10 +135,13 @@ console.log(url)
     app.get('/an/fhir/*',async function(req,res){
         //console.log(req.originalUrl)
         let ar = req.originalUrl.split('/')
-        let urlToServer = serverRoot +  decodeURI(ar[3])         //the query passed in by the client
+        ar.splice(0,3)        //remove the preceeding entries
+
+        let urlToServer = serverRoot +  decodeURI(ar.join('/'))         //the query passed in by the client
 
 
-        //console.log(urlToServer)
+
+        console.log('server: ' + urlToServer)
         try {
             let bundle = await getBundle(urlToServer)
             res.json(bundle)

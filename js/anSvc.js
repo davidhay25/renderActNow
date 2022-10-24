@@ -276,7 +276,9 @@ angular.module("anApp")
 
                     //specific colours for careplans
                     if (resource.resourceType == 'CarePlan') {
-                        let cpCategory = resource.category[0].coding[0].code
+
+                        let cpCategory = getCarePlanCategory(resource)
+
                         try {
                             switch (cpCategory) {
                                 case  'patient' :
@@ -486,6 +488,13 @@ angular.module("anApp")
                     }
                 }
 
+                function getCarePlanCategory(cp) {
+                    let cpType
+                    if (cp.category && cp.category[0].coding) {
+                        cpType = cp.category[0].coding[0].code
+                    }
+                    return cpType
+                }
 
             }
         }
