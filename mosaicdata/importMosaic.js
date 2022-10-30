@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
+
+//questions
+//mcode laterality is a string - do we want cc
+
+
+
 //have a json file with mappings for coded data based on a key (eg BMI)
 //then a function tgat takes in the key/data and retuirns the CC
 /*
@@ -33,8 +39,11 @@ function createUUID() {
 
 let identifierRoot = "http://mosaic.com/"       //common root for all identifiers...
 
-let countToImport = 1
-let updateServer = false //true
+let countToImport = 15
+
+//let serverBase = null       //Assumed to be the transaction endpoint of the target server. Will upload if this server supplied
+let serverBase = "http://localhost:9092/baseR4"
+
 
 //let validationServer = "https://r4.ontoserver.csiro.au/fhir/"
 let validationServer = "http://hapi.fhir.org/baseR4/"
@@ -56,6 +65,25 @@ let profMedicationRequest = "http://canshare.co.nz/fhir/StructureDefinition/an-m
 let profCondition = "http://canshare.co.nz/fhir/StructureDefinition/an-condition"
 let profHistology = "http://canshare.co.nz/fhir/StructureDefinition/an-histology"
 
+//profiles for Observations
+let profBsa = "http://canshare.co.nz/fhir/StructureDefinition/an-bsa"
+let profCC = "http://canshare.co.nz/fhir/StructureDefinition/an-creat-clear"
+
+let profGleason = "http://canshare.co.nz/fhir/StructureDefinition/an-gleason"
+
+
+//profiles for TNM
+let profcT = "http://canshare.co.nz/fhir/StructureDefinition/an-cT"
+let profcN = "http://canshare.co.nz/fhir/StructureDefinition/an-cN"
+let profcM = "http://canshare.co.nz/fhir/StructureDefinition/an-cM"
+let profcGroup = "http://canshare.co.nz/fhir/StructureDefinition/an-cGroup"
+
+let profpT = "http://canshare.co.nz/fhir/StructureDefinition/an-pT"
+let profpN = "http://canshare.co.nz/fhir/StructureDefinition/an-pN"
+let profpM = "http://canshare.co.nz/fhir/StructureDefinition/an-pM"
+let profpGroup = "http://canshare.co.nz/fhir/StructureDefinition/an-pGroup"
+
+
 
 //extension urls
 let extRegimenType = "http://hl7.org.nz/fhir/StructureDefinition/sact-regimen-type"
@@ -71,20 +99,7 @@ let extPrescribedDose = "http://canshare.co.nz/fhir/StructureDefinition/an-presc
 let extLaterality = "http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-laterality-qualifier"
 let extTreatmentIntent = "http://canshare.co.nz/fhir/StructureDefinition/an-iot"
 let exCyclePlannedLength = "http://canshare.co.nz/fhir/StructureDefinition/an-cycle-planned-length"
-
-/*let regimenCategory = {coding:[{system:"http:canshare.com",code:"regimen"}]}
-let cycleCategory = {coding:[{system:"http:canshare.com",code:"cycle"}]}
-let patientCategory = {coding:[{system:"http:canshare.com",code:"patient"}]}
-
-let extOriginalData = "http://clinfhir.com/fhir/StructureDefinition/canshare-original-data"
-let extCycleNumber = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-number"
-let extCycleDay = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-day"
-let extCycleCount = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-count"
-
-let extDoseAdjustReason = "http://clinfhir.com/fhir/StructureDefinition/canshare-dose-adjustment-reason"
-let extPrescribedDose = "http://clinfhir.com/fhir/StructureDefinition/canshare-prescribed-dose"
-let extLaterality = "http://clinfhir.com/fhir/StructureDefinition/canshare-laterality"
-let extTreatmentIntent = "http://canshare.co.nz/fhir/StructureDefinition/tx-intent"*/
+let extDiscontinue = "http://canshare.co.nz/fhir/StructureDefinition/an-regimen-discontinued"
 
 let hashRegimen = {}
 let hashCycle  = {}
@@ -98,8 +113,6 @@ loadAllData(false)      //load all the data into hashs, ignoring those with a mi
 //strategy is to create a bundle for each regimen entry - this will be POSTed to the server
 //Each bundle will have one regimen level CP, all Cycle CP's that reference that regimen, and all admins that reference that cycle
 
-
-
 async function insert() {
     //await insertDataOneRegimen("4121-48770")
     //await insertDataOneRegimen("4121-124154")
@@ -112,22 +125,30 @@ async function insert() {
         //console.log(keys[i])
         await insertDataOneRegimen(keys[i])
     }
-
-    
 }
 
 //kick off the whole insert process
 insert()
 
+function makeHash(ar,seed) {
+    let tmp = ar.join('-')        //if there are 2 identical drugs (in all respects) then this won't work
+    if (seed) {tmp += '-' + seed}
+    return require('crypto').createHash('md5').update(tmp).digest("hex")
+
+}
 
 async function insertDataOneRegimen(regimenId) {
     console.log('---------------------')
     console.log("Inserting data for " + regimenId)
+
     //make the patient id the same as the regimen id
 
     //need to create a patient using the 'identifier' in the regimen (it's jus a number - we'll use it as the id)
-    let arRegimen = hashRegimen[regimenId]      //array of data from thie regimen line in the csv
-    let patientIdentifier = arRegimen[2]   || 'pat-ident'             //in a real situation this is the NHI
+    let arRegimen = hashRegimen[regimenId].data      //array of data from thie regimen line in the csv
+    //console.log(arRegimen)
+    let patientIdentifier = arRegimen[2]           //in a real situation this is the NHI
+    //console.log("Patient identifier: " + arRegimen[2])
+
 
     //new strategy: Create a separate Patient resource for each regimen, & use the Patient.identifier to teel when they are the same
     //makes the UI simpler - doesn't overly affect the design as everything would still support multiple regimens per patient
@@ -135,38 +156,26 @@ async function insertDataOneRegimen(regimenId) {
     //inevitable there will be multiple patient resources for the same actual person. But we can assume the NHI will be there so a query
     //for all data for a person will need to query multiple patients by identifier.
     //each supplier of data will have a specific system for the identifier
-    //resource id contention is going to be a major thing to think about when acquiring data...
-    /*
-    let patient
-    if (hashAllPatients[patientId]) {
-        patient = hashAllPatients[patientId]
-    } else {
-        patient = {resourceType:"Patient",id:regimenId,name:[{text:"John Doe - " + regimenId}]}
-        addNarrative(patient,"John Doe - " + regimenId)
 
-    }
-*/
+
+    //create the patient resource. Make up a name as this is anonymized..
+    //If a patient has multiple regimens in the csv, then the patient patient care plan will have the same identifier, so should work ok
+    //regimenId should be unique within the csv file
     let patient = {resourceType:"Patient",name:[{text:"John Doe - " + regimenId}]} //,id:regimenId
-
     patient.id = createUUID()
-
     patient.identifier = [{system:identifierRoot + "Patient",value:patientIdentifier}]
-
     addNarrative(patient,"Identifier: " + patientIdentifier)
 
-    //create the transacton bundle of resources that represents a single regimen
+    //create the transaction bundle of resources that represents a single regimen. This includes all resources...
     let bundle = createBundle(regimenId,patient)
     if (bundle) {
-        //console.log(JSON.stringify(bundle,null,2))
-
-        //let fileName = "./out/bundle-" + regimenId + ".json"
 
         //save the bundle to a file. Currently local or in the IG
         //let fileName = "/Users/davidhay/IG/cs-actnow/input/examples/Bundle-" + bundle.id + ".json"
         let fileName = "./out/bundle-" + regimenId + ".json"
+        console.log("Filename: "+ fileName)
         let str = JSON.stringify(bundle,null,2)
         fs.writeFileSync(fileName,str)
-
 
         //perform a validation
         if (validateBundle) {
@@ -184,13 +193,13 @@ async function insertDataOneRegimen(regimenId) {
 
         }
 
-
         //write to the server
-        if (updateServer) {
-            let url = "http://localhost:9092/baseR4"
-            console.log("POSTing to "+url)
+        if (serverBase) {
+            //let url = serverBase //
 
-            return axios.post(url, bundle)
+            console.log("POSTing to "+serverBase)
+
+            return axios.post(serverBase, bundle)
                 .then(function (response) {
                     console.log(response.status);
                     //return
@@ -215,17 +224,12 @@ async function insertDataOneRegimen(regimenId) {
         console.log("No cycles. Ignoring.")
     }
 
-
-
 }
-
-
 
 
 //======== only functions below this point...
 
-// create a bundle with all resources that reference a single regimen
-
+// create a bundle with all resources that reference a single regimen. The initial call - it calls subsequent functions
 function createBundle(regimenId,patient) {
     let bundle = {resourceType:'Bundle',type:'transaction',entry:[]}
     bundle.id = regimenId;
@@ -245,7 +249,7 @@ function createBundle(regimenId,patient) {
        let id = resource.id
         //delete resource.id
         let entry = {resource:resource}
-        if (resource.resourceType == "CarePlan") { cntCycles++}
+        if (resource.resourceType == "CarePlan" && resource.category[0].coding[0].code == "cycleCP") { cntCycles++}
         //let fullUrl = "http://canshare.co.nz/fhir/"+ resource.resourceType + "/" + resource.id
         let fullUrl = "urn:uuid:" +id
         entry.fullUrl = fullUrl
@@ -257,18 +261,18 @@ function createBundle(regimenId,patient) {
         }
 
         if (! resource.identifier || !resource.identifier[0]) {
-            console.log('err ' ,resource)
+            console.log('missing identifier ' ,resource)
         }
-        //entry.request = {method:"PUT",url:resource.resourceType + "/" + resource.id}
+
         //all updates are represented as conditional updated on the resource identifier (which is required)
         entry.request = {method:"PUT",url:resource.resourceType + "?identifier=" + resource.identifier[0].system + "|" +resource.identifier[0].value}
-
         bundle.entry.push(entry)
     })
 
-    console.log(cntCycles)
+    //console.log(cntCycles)
     
     if (cntCycles > 1) {
+        console.log(cntCycles + " cycles")
         return bundle
     } else {
         return null
@@ -288,14 +292,14 @@ function makeRegimenCP(vo,patient) {
 
     let ar = vo.data    //the actual data from the csv
 
-    //patient level careplan
+    //patient level careplan. Make the identifier specific to the patient not the regimen - that way there will only be one patient CP
     let cpPatient = {resourceType:"CarePlan",id:'pat-' + ar[0],status:'active',intent:'order'}
     cpPatient.id = createUUID()
-    cpPatient.identifier = [{system: identifierRoot+"CarePlan",value:'pat-' + ar[0]}]
+    cpPatient.identifier = [{system: identifierRoot+"CarePlan",value:'pat-' + patient.identifier[0].value}]
+    // cpPatient.identifier = [{system: identifierRoot+"CarePlan",value:'pat-' + ar[0]}]
 
     addNarrative(cpPatient,"Patient plan")
 
-    //cpPatient.subject = {reference:"Patient/"+patient.id}
     cpPatient.subject = {reference:"urn:uuid:"+patient.id}
     cpPatient.category = [patientCategory]
 
@@ -303,7 +307,7 @@ function makeRegimenCP(vo,patient) {
     //the regimen plan
     let cp = {resourceType:"CarePlan",id:ar[0],status:'active',intent:'order'}
     cp.id = createUUID()
-    addNarrative(cp,"Regimen plan")
+
     addProfile(cp,profRegimenCarePlan)
     // - don't delete just yet addExtension(cp,extOriginalData,'valueString',JSON.stringify(ar))   //the data used to create this one
 
@@ -312,15 +316,11 @@ function makeRegimenCP(vo,patient) {
     //there are a number of required extensions
     cp.extension = []
     cp.extension.push({url:extTreatmentIntent,valueCodeableConcept: {text:ar[3]}})     //intent of treatment
-
-
     cp.extension.push({url:extRegimenType,valueCodeableConcept: {text:ar[4]}})     //regimen type
 
     cp.title = ar[4]
-    //cp.subject = {reference:"Patient/"+patient.id}
     cp.subject = {reference: "urn:uuid:" +patient.id}
     cp.category = [regimenCategory]         //defined above - specifies this as a regimen plan
-    //cp.partOf = [{reference:"CarePlan/" +cpPatient.id}]     //a reference to the Patient CP
     cp.partOf = [{reference:"urn:uuid:" +cpPatient.id}]     //a reference to the Patient CP
 
 
@@ -332,17 +332,32 @@ function makeRegimenCP(vo,patient) {
     if (ar[10]) {
         //this is discontinue date - the plan was halted prior to completion
         cp.status = "revoked"
+
         //now add the reason. An Outcome Observation seems better as that would allow the person and other stuff to be added
 
+
         if (ar[11]) {
-            let outcomeObsId = createUUID() //  cp.id + "-outcome"
+
+
+            let ext = {url: extDiscontinue, extension :[]}
+            ext.extension.push({url:"reason",valueCodeableConcept : {text:ar[11] }})
+            cp.extension = cp.extension || []
+            cp.extension.push(ext)
+
+/*
+            let outcomeObsId = createUUID()
             let outcomeObs = {resourceType:"Observation",id:outcomeObsId,status:"final"}
             addNarrative(outcomeObs,"Outcome observation: Discontinued " + ar[11])
             outcomeObs.code = {text:"outcome",coding:[{code:"385676005",system:"http://snomed.info/sct"}]}
             outcomeObs.valueCodeableConcept = {text:ar[11]}
-            //outcomeObs.focus = [{reference:"CarePlan/"+ cp.id}]   //has a reference back to the regimen plan
-            outcomeObs.focus = [{reference:"urn:uuid:"+ cp.id}]
+            outcomeObs.focus = [{reference:"urn:uuid:"+ cp.id}] //has a reference back to the regimen plan
             outcomeObs.subject = {reference: "urn:uuid:" +patient.id}
+            */
+        } else {
+            let ext = {url: extDiscontinue, extension :[]}
+            ext.extension.push({url:"reason",valueCodeableConcept : {text:"No reason given" }})
+            cp.extension = cp.extension || []
+            cp.extension.push(ext)
         }
     }
 
@@ -360,6 +375,9 @@ function makeRegimenCP(vo,patient) {
     cp.period = {}
     cp.period.start = convertDate(ar[6])
     cp.period.end = convertDate(ar[7])
+
+    addNarrative(cp,"Regimen plan: " + cp.status)
+
     let arResources = [cp]
 
     arResources.push(cpPatient)
@@ -367,13 +385,11 @@ function makeRegimenCP(vo,patient) {
 
     //add the Condition
     let condition = {resourceType:"Condition"}
-    //condition.id = ar[0]        //todo currently the same as the Regimen careplan
     condition.id = createUUID()
-    //condition.subject = {reference:"Patient/"+patient.id}
     condition.subject = {reference:"urn:uuid:"+patient.id}
 
     addProfile(condition,profCondition)
-    condition.identifier = [{system:identifierRoot + "Condition",value:"condition-"+ ar[0]}]
+    condition.identifier = [{system:identifierRoot + "Condition",value:"condition-"+ ar[0]}]  //use the regimen identifier
 
     let codeText = ar[13]
     condition.code = {coding:[{system:"http://hl7.org/fhir/sid/icd-9-cm",code:ar[12]}]}
@@ -388,20 +404,16 @@ function makeRegimenCP(vo,patient) {
     addExtension(condition,extLaterality,'valueString',ar[14])
 
     //the reference from the regimen to the Condition
-    //cp.addresses = [{reference:"Condition/"+ condition.id}]
     cp.addresses = [{reference:"urn:uuid:"+ condition.id}]
 
     //add the Histology observation and reference it from Condition.evidence
-
     let HistObsId = createUUID() // cp.id + "-histology"
     let histObs = {resourceType:"Observation",id:HistObsId,status:"final"}
     addNarrative(histObs,"Histology")
     addProfile(histObs,profHistology)
     histObs.identifier = [{system:identifierRoot + "Observation",value:"histology-" + ar[0]}]
-    //histObs.subject = {reference:"Patient/"+patient.id}
     histObs.subject = {reference:"urn:uuid:"+patient.id}
     histObs.code = {coding:[{system:snomed,code:"82231000004111"}]}
-    //histObs.code = {coding:[{system:'http://example.org',code:"histology"}]}
 
 
     if (ar[15]) {
@@ -417,13 +429,8 @@ function makeRegimenCP(vo,patient) {
         histObs.component.push({code:{text:"dxclass"},valueString:ar[17]})
     }
 
-
-
-
-
     arResources.push(histObs)
 
-    //condition.evidence = [{detail:[{reference:"Observation/"+histObs.id}]}]
     condition.evidence = [{detail:[{reference:"urn:uuid:"+histObs.id}]}]
     arResources.push(condition)
 
@@ -436,28 +443,25 @@ function makeRegimenCP(vo,patient) {
 
     //pathological TNM staging. Assume that the combined stage is present, and if it is then the others are present...
     if (ar[25]) {
-        let arTnmResources = makeTNMStagingPath(patient,cp,ar[22],ar[23],ar[24],ar[25])
+        let arTnmResources = makeTNMStagingPath(patient,cp,ar[22],ar[23],ar[24],ar[25],ar)
         arResources = arResources.concat(arTnmResources)
         //The condition staging should reference the TNM. The first resource returned by makeTNMStaging is the combined stage
         let tnmStage = arTnmResources[0]
         if (tnmStage) {
             condition.stage = condition.stage || []
-            //condition.stage.push({assessment:[{reference:"Observation/"+tnmStage.id}]})
             condition.stage.push({assessment:[{reference:"urn:uuid:"+tnmStage.id}]})
         }
     }
 
-
     //clinical TNM staging
     if (ar[21]) {
-        let arClinTnmResources = makeTNMStagingClin(patient, cp, null, ar[18], ar[19], ar[20], ar[21])
+        let arClinTnmResources = makeTNMStagingClin(patient, cp, null, ar[18], ar[19], ar[20], ar[21],ar)
         arResources = arResources.concat(arClinTnmResources)
         //The condition staging should reference the TNM. The first resource returned by makeTNMStaging is the combined stage
         let tnmStageClin = arClinTnmResources[0]
         if (tnmStageClin) {
             condition.stage = condition.stage || []
-            //condition.stage.push({assessment: {reference: "Observation/" + tnmStageClin.id}})
-            condition.stage.push({assessment: {reference: "urn:uuid:" + tnmStageClin.id}})
+            condition.stage.push({assessment: [{reference: "urn:uuid:" + tnmStageClin.id}]})
         }
     }
 
@@ -469,23 +473,21 @@ function makeRegimenCP(vo,patient) {
     hashCPObservations[26] = {key:'ER',code:"ER"}
     hashCPObservations[27] = {key:'PR',code:"PR"}
     hashCPObservations[28] = {key:'HER2',code:"HER2"}
+
     hashCPObservations[29] = {key:'Gleason_primary',code:"Gleason-primary"}
     hashCPObservations[30] = {key:'Gleason_secondary',code:"Gleason-secondary"}
     hashCPObservations[31] = {key:'Gleason_tertiary',code:"Gleason-tertiary"}
-    //hashCPObservations[31] = {key:'BSA',code:"BSA"}
 
+    for (var i = 26; i< 29; i++) {          //the gleason scores are done separately as the Observation is specific
+        let obsValue = ar[i]              //this is the key that came through in the extract. todo Will convert to a real code
 
-    for (var i = 26; i< 32; i++) {
-        let obsValue = ar[i]              //this is the key that cam through in the extract. todo Will convert to a real code
-      // console.log(obsValue)
         if (obsValue && obsValue !== 'NULL') {
             let obsKey = hashCPObservations[i]  //{key,code}
-          //  console.log('adding',obsKey)
+
             let ObsId = createUUID() // cp.id + obsKey.code + i
 
             let obs = {resourceType:"Observation",id:ObsId,status:"final"}
-            obs.identifier = [{system:identifierRoot + "Observation",value:ObsId}]
-            //obs.subject = {reference:"Patient/"+patient.id}
+            obs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,i)}]
             obs.subject = {reference:"urn:uuid:"+patient.id}
             obs.code = {text:obsKey.code,coding:[{system:'http://canshare.co.nz/dummy',code:obsKey.code}]}
             obs.valueString = obsValue
@@ -494,7 +496,6 @@ function makeRegimenCP(vo,patient) {
 
             //todo reference from CP -> OBs (which is correct when the observation is made when the regimen comences)
             cp.supportingInfo = cp.supportingInfo || []
-            //cp.supportingInfo.push({reference:"Observation/"+ obs.id})
             cp.supportingInfo.push({reference:"urn:uuid:"+ obs.id})
 
             arResources.push(obs)
@@ -502,8 +503,51 @@ function makeRegimenCP(vo,patient) {
         } 
     }
 
+    //now we can check the gleason score
+    let glPrimary = ar[29]
+    let glSecondary = ar[30]
+    let glTertiary = ar[31]
+
+    if (glPrimary || glSecondary || glTertiary) {
+
+        let obsGleason  = {resourceType:"Observation",id:createUUID(),status:"final"}
+        obsGleason.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'gleason')}]
+        addProfile(obsGleason,profGleason)
+        obsGleason.subject = {reference:"urn:uuid:"+patient.id}
+        obsGleason.code = {text:"Gleason score",coding:[{system:snomed,code:"372278000"}]}
+
+        obsGleason.effectiveDateTime = cp.period.start         //todo assume the date is the start of the regimesn
+        addNarrative(obsGleason,"Gleason score")
+
+        obsGleason.component = []
+        if (glPrimary) {
+            let comp = {code:{text:'Gleason primary',coding:[{system:snomed,code:"384994009"}]}}
+            comp.valueInteger = parseInt(glPrimary)
+            obsGleason.component.push(comp)
+        }
+        if (glSecondary) {
+            let comp = {code:{text:'Gleason secondary',coding:[{system:snomed,code:"384995005"}]}}
+            comp.valueInteger = parseInt(glSecondary)
+            obsGleason.component.push(comp)
+        }
+        if (glTertiary) {
+            let comp = {code:{text:'Gleason tertiary',coding:[{system:snomed,code:"385002007"}]}}
+            comp.valueInteger = parseInt(glTertiary)
+            obsGleason.component.push(comp)
+        }
+
+        //todo reference from CP -> OBs (which is correct when the observation is made when the regimen comences)
+        cp.supportingInfo = cp.supportingInfo || []
+        cp.supportingInfo.push({reference:"urn:uuid:"+ obsGleason.id})
+
+        arResources.push(obsGleason)
+
+    }
+
     //now, add all the cycles (and related resources like MedicationAdministrations & Observations)...
+
     vo.cycles.forEach(function(cycleId){
+
         let arCpCycleResources = makeCycleCP(hashCycle[cycleId],patient,cp)
         arResources = arResources.concat(arCpCycleResources)
     })
@@ -531,25 +575,18 @@ function makeCycleCP(vo,patient,cpRegimen) {
     cp.id = createUUID()
     // - don't delete just yet addExtension(cp,extOriginalData,'valueString',JSON.stringify(ar))   //the data used to create this one
     cp.category = [cycleCategory]
-    cp.identifier = [{system:identifierRoot + "CarePlan",value:ar[0]}]
+
+    cp.identifier = [{system:identifierRoot + "CarePlan",value:ar[1]}]
+
     cp.title = "Plan for cycle"
     addProfile(cp,profCycleCarePlan)
-
-
-
 
     addExtension(cp,extCycleNumber,'valueInteger',parseInt(ar[2]))
 
     //assume the length field in the extract is the planned length
     addExtension(cp,exCyclePlannedLength,'valueInteger',parseInt(ar[3]))
 
-
-
-
     addNarrative(cp,"Cycle CP")
-
-    //cp.subject = {reference:"Patient/"+patient.id}
-    //cp.partOf = [{reference:"CarePlan/" +cpRegimen.id}]     //a reference to the Regimen CP
 
     cp.subject = {reference:"urn:uuid:"+patient.id}
     cp.partOf = [{reference:"urn:uuid:" +cpRegimen.id}]     //a reference to the Regimen CP
@@ -558,11 +595,7 @@ function makeCycleCP(vo,patient,cpRegimen) {
     cp.period.start = convertDate(ar[4])
     cp.period.end = convertDate(ar[5])
 
-    //console.log(cp.period)
-
     addNarrative(cp,"Cycle plan")
-    //cp.title = ar[4]
-
     arResources.push(cp)
 
     //now create the MedicationAdministrations and Observations from the administration line
@@ -577,15 +610,14 @@ function makeCycleCP(vo,patient,cpRegimen) {
 }
 
 function makeMedAdmin(ar,patient,cp) {
-    //there is no id for the admin - need to construct one by hashing the entire record
-    //let tmp = ar.join('-') + "-" + Math.floor(Math.random() * 1000)         //if 2 identical drugs
-    //let newId = require('crypto').createHash('md5').update(tmp).digest("hex")
-
-
     let newId = createUUID()
 
-    let arResources = []
+    let identifierValue = makeHash(ar)
+    //there is no id for the admin - need to construct one by hashing the entire record
 
+
+
+    let arResources = []
 
     if (! ar[11]) {   //drug start time -
         //this is a prescribed drug
@@ -606,17 +638,13 @@ function makeMedAdmin(ar,patient,cp) {
         }
 
 
-
-
-        //rx.subject = {reference:"Patient/"+patient.id}
         rx.subject = {reference:"urn:uuid:"+patient.id}
         rx.authoredOn = convertDate(ar[5])
-        rx.identifier = [{system:identifierRoot + "MedicationRequest" ,value:newId}]
-       // rx.supportingInformation = [{reference:"CarePlan/"+cp.id}]
+        rx.identifier = [{system:identifierRoot + "MedicationRequest" ,value:identifierValue}]
         rx.supportingInformation = [{reference:"urn:uuid:"+cp.id}]
         addNarrative(rx, ar[6])
 
-       // console.log(rx)
+
         return [rx]
     } else {
         //this is a drug with administration times - ie actually given
@@ -625,8 +653,7 @@ function makeMedAdmin(ar,patient,cp) {
 
         //addExtension(cp,extBasedOn,'valueReference',{reference:"CarePlan/"+cp.id})   //the data used to create this one
         addProfile(admin,profMedicationAdministration)
-        admin.identifier = [{system:identifierRoot + "MedicationAdministration" ,value:newId}]      //temp hack as there is no search param for Supporting info
-        //admin.supportingInformation = [{reference:"CarePlan/"+cp.id}]
+        admin.identifier = [{system:identifierRoot + "MedicationAdministration" ,value:identifierValue}]      //temp hack as there is no search param for Supporting info
         admin.supportingInformation = [{reference:"urn:uuid:"+cp.id}]
 
         //cycle day is a complex extension now
@@ -654,21 +681,15 @@ function makeMedAdmin(ar,patient,cp) {
             let ar1 = admin.dosage.text .split(" ")
             admin.dosage.dose = {value:parseFloat(ar1[0]),unit:ar1[1]}
 
-
-
             if (ar[10]) {
                 admin.dosage.route = {text: ar[10].trim()}
             }
         }
 
-
-
         //if the prescribed dose is different to the administered dose
         if (ar[8]) {
             if (ar[8] !== ar[9]) {
                 admin.dosage.text += " (Rx:" + ar[8] + ")"
-
-                //prescribed dose
                 addExtension(admin,extPrescribedDose,'valueString',ar[8])
             }
         }
@@ -694,41 +715,32 @@ function makeMedAdmin(ar,patient,cp) {
 
         //Is there a BSA value
         if (ar[18] ) {
-            //let obs = {resourceType:"Observation",id:newId +"-BSA", status:"final"}
+
             let obs = {resourceType:"Observation",id:createUUID(), status:"final"}
-            //obs.subject = {reference:"Patient/"+patient.id}
             obs.subject = {reference:"urn:uuid:"+patient.id}
-            //add a reference to the medication as well. This may or may not be helpful. The focus element may be a better choice...
-            //obs.partOf = [{reference:"MedicationAdministration/"+admin.id}]
-            obs.partOf = [{reference:"urn:uuid:"+admin.id}]
-            obs.identifier = [{system:identifierRoot + "Observation",value:obs.id}]
-            //obs.focus = [{reference:"CarePlan/"+cp.id}]
+            // not really this relationship obs.partOf = [{reference:"urn:uuid:"+admin.id}]
+            obs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar)}]
             obs.focus = [{reference:"urn:uuid:"+cp.id}]
             obs.code = {text:"BSA",coding:[{system:"http://loinc.org",code:"8277-6"}]}         //todo confirm code for BSA
             obs.valueQuantity = {unit:"m2",value: parseFloat(ar[18]) ,system:"http://unitsofmeasure.org"}
             obs.effectiveDateTime = admin.effectivePeriod.start      //todo - this is an assumption
             addNarrative(obs,"BSA " + ar[18])
+            addProfile(obs,profBsa)
             arResources.push(obs)
         }
 
         //Is there a creatinine clearance value
         if (ar[19]) {
-            //let obs = {resourceType:"Observation",id:newId +"-CC",status:"final"}
             let obs = {resourceType:"Observation",id:createUUID(),status:"final"}
-            //obs.subject = {reference:"Patient/"+patient.id}
-            obs.identifier = [{system:identifierRoot + "Observation",value:obs.id}]
+            obs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar)}]
             obs.subject = {reference:"urn:uuid:"+patient.id}
-            obs.partOf = [{reference:"urn:uuid:"+admin.id}]
-
-            //obs.partOf = [{reference:"MedicationAdministration/"+admin.id}]
-            //obs.basedOn = [{reference:"CarePlan/"+cp.id}]
-            //obs.focus = [{reference:"CarePlan/"+cp.id}]
-            //obs.focus = [{reference:"urn:uuid:"+cp.id}]
+            //obs.partOf = [{reference:"urn:uuid:"+admin.id}]
             obs.focus = [{reference:"urn:uuid:"+cp.id}]
             obs.code = {text:"Creatinine Clearance",coding:[{system:"http://loinc.org",code:"13449-4"}]}         //todo confirm code for CR
             obs.valueQuantity = {value:parseFloat(ar[17])}              //todo check units
             obs.effectiveDateTime = admin.effectivePeriod.start      //todo - this is an assumption
             addNarrative(obs,"Creatinine Clearance " + ar[17])
+            addProfile(obs,profCC)
             arResources.push(obs)
         }
     }
@@ -738,30 +750,36 @@ function makeMedAdmin(ar,patient,cp) {
 
 //create a set of TNM stage observations compliant with mCode (https://hl7.org/fhir/us/mcode/index.html)
 //uses the clincial codes
-function makeTNMStagingPath(patient,regimen,t,n,m,stage) {
+function makeTNMStagingPath(patient,regimen,t,n,m,stage,ar) {
+
+
     //create an id based on regimenId and type of obe (only 1 per regimen ATM)
     //let stageObs = makeObservation(regimen.id+'tnm-path-stage', patient,"21908-9",stage,"TNM group")
-    let stageObs = makeObservation(createUUID(), patient,"21908-9",stage,"TNM group")
+    let stageObs = makeObservation(createUUID(), patient,"21908-9",stage,"TNM group",ar)
+    stageObs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'ptnm')}]
+    addProfile(stageObs,profpGroup)
     addNarrative(stageObs,"Pathological TNM Group: " + stage)
 
     //let tObs = makeObservation(regimen.id+'tnm-path-t',patient,"21905-5",t)
-    let tObs = makeObservation(createUUID(),patient,"21905-5",t)
+    let tObs = makeObservation(createUUID(),patient,"21905-5",t,"",ar)
+    tObs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'pt')}]
+    addProfile(tObs,profpT)
     addNarrative(tObs,"Pathological T: " + t)
 
     //let nObs = makeObservation(regimen.id+'tnm-path-n',patient,"21906-3",n)
-    let nObs = makeObservation(createUUID(),patient,"21906-3",n)
+    let nObs = makeObservation(createUUID(),patient,"21906-3",n,"",ar)
+    nObs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'pn')}]
+    addProfile(nObs,profpN)
     addNarrative(nObs,"Pathological N: " + n)
 
     //let mObs = makeObservation(regimen.id+'tnm-path-m',patient,"21907-3",m)
-    let mObs = makeObservation(createUUID(),patient,"21907-3",m)
+    let mObs = makeObservation(createUUID(),patient,"21907-3",m,"",ar)
+    mObs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'pm')}]
+    addProfile(mObs,profpM)
     addNarrative(mObs,"Pathological M: " + m)
 
     stageObs.hasMember = []
-    //stageObs.hasMember.push({reference:"Observation/"+tObs.id})
-    //stageObs.hasMember.push({reference:"Observation/"+nObs.id})
-    //stageObs.hasMember.push({reference:"Observation/"+mObs.id})
-    //regimen.supportingInfo = regimen.supportingInfo || []
-    //regimen.supportingInfo.push({reference:"Observation/"+ stageObs.id})
+
 
     stageObs.hasMember.push({reference:"urn:uuid:"+tObs.id})
     stageObs.hasMember.push({reference:"urn:uuid:"+nObs.id})
@@ -774,27 +792,33 @@ function makeTNMStagingPath(patient,regimen,t,n,m,stage) {
 
 }
 
-function makeTNMStagingClin(patient,regimen,type,t,n,m,stage) {
+function makeTNMStagingClin(patient,regimen,type,t,n,m,stage,ar) {
     //create an id based on regimenId and type of obe (only 1 per regimen ATM)
 
+
+
     //let stageObs = makeObservation(regimen.id+'tnm-clin-stage', patient,"c-tnm",stage,"TNM group")
-    let stageObs = makeObservation(createUUID(), patient,"c-tnm",stage,"TNM group")
-    stageObs.identifier = [{system:identifierRoot + "Observation",value:stageObs.id}]
-    addNarrative(stageObs,"TNM Group: " + stage)
+    let stageObs = makeObservation(createUUID(), patient,"c-tnm",stage,"TNM group",ar)
+    stageObs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'ctnm')}]
+    addProfile(stageObs,profcGroup)
+    addNarrative(stageObs,"Clinical TNM Group: " + stage)
 
     //let tObs = makeObservation(regimen.id+'tnm-clin-t',patient,"c-t",t)
-    let tObs = makeObservation(createUUID(),patient,"c-t",t)
-    tObs.identifier = [{system:identifierRoot + "Observation",value:tObs.id}]
+    let tObs = makeObservation(createUUID(),patient,"c-t",t,"",ar)
+    tObs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'ct')}]
+    addProfile(tObs,profcT)
     addNarrative(tObs,"Clinical T: " + t)
 
     //let nObs = makeObservation(regimen.id+'tnm-clin-n',patient,"c-n",n)
-    let nObs = makeObservation(createUUID(),patient,"c-n",n)
-    nObs.identifier = [{system:identifierRoot + "Observation",value:nObs.id}]
+    let nObs = makeObservation(createUUID(),patient,"c-n",n,"",ar)
+    nObs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'cn')}]
+    addProfile(nObs,profcN)
     addNarrative(nObs,"Clinical N: " + n)
 
     //let mObs = makeObservation(regimen.id+'tnm-clin-m',patient,"c-m",m)
-    let mObs = makeObservation(createUUID(),patient,"c-m",m)
-    mObs.identifier = [{system:identifierRoot + "Observation",value:mObs.id}]
+    let mObs = makeObservation(createUUID(),patient,"c-m",m,"",ar)
+    mObs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar,'cm')}]
+    addProfile(mObs,profcM)
     addNarrative(mObs,"Clinical M: " + m)
 
     stageObs.hasMember = []
@@ -816,10 +840,10 @@ function makeTNMStagingClin(patient,regimen,type,t,n,m,stage) {
 }
 
 //make an observation
-function makeObservation(id,patient,loincCode,value,display){
+function makeObservation(id,patient,loincCode,value,display,ar){
     let obs = {resourceType:"Observation",id:id,status:"final"}
-    obs.identifier = [{system:identifierRoot + "Observation",value:obs.id}]
-    obs.subject = {reference:"Patient/"+patient.id}
+    obs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar)}]
+    obs.subject = {reference:"urn:uuid:"+patient.id}
     obs.code = {coding:[{system:'http://loinc.org',code:loincCode}]}
     if (display) {
         obs.code.text = display
@@ -953,7 +977,8 @@ function addNarrative(resource,txt) {
     txt = txt.replace(/&/g, "&amp;")
     txt = txt.trim()
 
-    text.div = "<div xmlns='http://www.w3.org/1999/xhtml'><div>" + txt + "</div></div>"
+    //text.div = "<div xmlns='http://www.w3.org/1999/xhtml'><div>" + txt + "</div></div>"
+    text.div = "<div xmlns='http://www.w3.org/1999/xhtml'>" + txt + "</div>"
     resource.text = text
 
 }

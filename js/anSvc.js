@@ -33,8 +33,193 @@ angular.module("anApp")
         //specific colours for act now
         objColours.regimen =  '#ff8080';
 
+        gleasonCode = "http://snomed.info/sct|372278000"
+        tnmClinicalCode = "http://loinc.org|c-tnm"
+        tnmPathologicalCode = "http://loinc.org|21908-9"
+
+        extDiscontinued = "http://canshare.co.nz/fhir/StructureDefinition/an-regimen-discontinued"
+
 
         return {
+
+            getCarePlanCategory(cp) {
+                let cpType
+                if (cp.category && cp.category[0].coding) {
+                    cpType = cp.category[0].coding[0].code
+                }
+                return cpType
+            },
+
+            createSummary : function (allEntries) {
+                //create a summary object for the clinical summary view. Suppert multiple regimens...
+                let that = this
+                //create the list of regimen plans
+                let summary = {regimens:[]}
+                let hashAllResources = {}       //hash by reference
+                allEntries.forEach(function (entry) {
+                    let resource = entry.resource
+                    hashAllResources[resource.resourceType + "/" + resource.id] = resource
+
+                    if (resource.resourceType == 'CarePlan' && that.getCarePlanCategory(resource) == 'regimenCP') {
+                        //this is a regimen CarePlan
+                        summary.regimens.push({regimenCP:resource,addresses:[],before:[],after:[],cycles : []})
+                    }
+                })
+
+                summary.regimens.forEach(function (regimen) {
+                    
+                    //if status revoked, then extract the reason
+                    if (regimen.regimenCP.status == 'revoked') {
+
+
+                      //  let ext = that.getSingleComplexExtension(regimen.regimenCP,extDiscontinued)
+                        regimen.revoked = that.getSingleComplexExtension(regimen.regimenCP,extDiscontinued)
+                      //  console.log(ext)
+                        
+                    }
+
+                    //the Conditions that this plan addresses
+                    if (regimen.regimenCP.addresses) {
+                        regimen.regimenCP.addresses.forEach(function (ref) {
+                            let key = ref.reference
+                            regimen.addresses.push(hashAllResources[key])       //this should be a Condition
+                        })
+                    }
+
+                    //resources like staging that are made before regimen starts
+                    if (regimen.regimenCP.supportingInfo) {
+                        regimen.regimenCP.supportingInfo.forEach(function (ref) {
+                            let key = ref.reference
+
+                            //now check for specifics - gleason, staging
+                            let resource = hashAllResources[key]    //todo assume these are observations for now..
+
+                            if (resource && resource.code && resource.code.coding) {
+                                let code = resource.code.coding[0].system + "|" + resource.code.coding[0].code
+
+                                switch (code) {
+                                    case gleasonCode :
+                                        regimen.gleason = {}
+                                        resource.component.forEach(function (comp) {
+                                            if (comp.code && comp.code.coding) {
+                                                let subCode = comp.code.coding[0].code
+                                                switch (subCode) {
+                                                    case "384994009":
+                                                        regimen.gleason.primary = comp.valueInteger
+                                                        break
+                                                    case "384995005":
+                                                        regimen.gleason.secondary = comp.valueInteger
+                                                        break
+                                                    case "385002007":
+                                                        regimen.gleason.tertiary = comp.valueInteger
+                                                        break
+                                                }
+                                            }
+                                        })
+                                        break
+                                    case tnmPathologicalCode :
+                                        regimen.pTNM = {}
+                                        regimen.pTNM.group = resource.valueCodeableConcept
+                                        if (resource.hasMember) {
+                                            resource.hasMember.forEach(function (member) {
+                                                let key = member.reference
+                                                let obs = hashAllResources[key]
+                                                if (obs) {
+                                                    let obsCode = obs.code.coding[0].system + "|" + obs.code.coding[0].code
+                                                    switch (obsCode) {
+                                                        case "http://loinc.org|21905-5" :
+                                                            regimen.pTNM.T = obs.valueCodeableConcept
+                                                            break
+                                                        case "http://loinc.org|21906-3" :
+                                                            regimen.pTNM.N = obs.valueCodeableConcept
+                                                            break
+                                                        case "http://loinc.org|21907-3" :
+                                                            regimen.pTNM.M = obs.valueCodeableConcept
+                                                            break
+                                                    }
+                                                }
+
+                                            })
+                                        }
+
+                                        break
+
+                                    case tnmClinicalCode :
+                                        regimen.cTNM = {}
+                                        regimen.cTNM.group = resource.valueCodeableConcept
+                                        if (resource.hasMember) {
+                                            resource.hasMember.forEach(function (member) {
+                                                let key = member.reference
+                                                let obs = hashAllResources[key]
+                                                if (obs) {
+                                                    let obsCode = obs.code.coding[0].system + "|" + obs.code.coding[0].code
+                                                    switch (obsCode) {
+                                                        case "http://loinc.org|c-t" :
+                                                            regimen.cTNM.T = obs.valueCodeableConcept
+                                                            break
+                                                        case "http://loinc.org|c-n" :
+                                                            regimen.cTNM.N = obs.valueCodeableConcept
+                                                            break
+                                                        case "http://loinc.org|c-m" :
+                                                            regimen.cTNM.M = obs.valueCodeableConcept
+                                                            break
+                                                    }
+                                                }
+
+                                            })
+                                        }
+
+                                        break
+
+                                }
+
+                            } else {
+                                regimen.before.push(hashAllResources[key])
+                            }
+
+                        })
+                    }
+
+                    //now look for cycles associated with this regimen
+
+                    let refToRegimenCP = "CarePlan/" + regimen.regimenCP.id
+                    allEntries.forEach(function (entry) {
+                        let resource = entry.resource
+
+                        if (resource.resourceType == 'CarePlan' && that.getCarePlanCategory(resource) == 'cycleCP') {
+                            //this is a cycle CarePlan
+                            if (resource.partOf) {
+                                resource.partOf.forEach(function (po) {
+                                    if (po.reference == refToRegimenCP ) {
+                                            regimen.cycles.push(resource)
+                                    }
+                                })
+
+                            }
+                        }
+                    })
+
+
+                    //regimen outcome
+
+
+
+
+/*
+                    //resources / observations made after the regimen ends. Things like blood tests...
+                    allEntries.forEach(function (entry) {
+                        let resource = entry.resource
+                        if (resource.basedOn)
+
+                    })
+*/
+                })
+
+
+
+                return summary
+
+            },
 
             auditQRAgainstQ : function (Q,QR) {
                 //pull out required data items assuming the report is in a QR. For real, this will be the observation in a DiagnosticReport
@@ -101,6 +286,24 @@ angular.module("anApp")
                     resource.extension.forEach(function(ext){
                         if (ext.url == url) {
                             result = ext['value'+type]
+                        }
+                    })
+                }
+                return result
+            },
+
+            getSingleComplexExtension : function(resource,url) {
+                let result = {}
+                if (resource && resource.extension && url) {
+                    resource.extension.forEach(function(ext){
+                        if (ext.url == url) {
+                            //this is the extension - construct an object with the child elements
+                            if (ext.extension) {
+                                ext.extension.forEach(function (child) {
+                                    result[child.url] = child
+                                })
+                            }
+                           // result = ext['value'+type]
                         }
                     })
                 }
@@ -281,11 +484,11 @@ angular.module("anApp")
 
                         try {
                             switch (cpCategory) {
-                                case  'patient' :
+                                case 'patientCP' :
                                     node.color = objColours.Patient
                                     node.label = "Patient plan\nCarePlan"
                                     break
-                                case 'regimen' :
+                                case 'regimenCP' :
                                     node.color = objColours.regimen
                                     node.label = "Regimen plan\nCarePlan"
                                     break
@@ -480,8 +683,7 @@ angular.module("anApp")
                     if (resource.text && resource.text.div) {
                         var jqueryObject = $($.parseHTML(resource.text.div));
 
-                        console.log(jqueryObject)
-                        console.log(jqueryObject.first().text()) //html())
+
 
                         return jqueryObject.first().text()
 

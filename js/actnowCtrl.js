@@ -1,7 +1,7 @@
 
 angular.module("anApp")
     .controller('actnowCtrl',
-        function ($scope,$http,$uibModal,anSvc) {
+        function ($scope,$http,$uibModal,anSvc,$timeout) {
 
             $scope.input = {}
             //$scope.moment = moment
@@ -10,6 +10,10 @@ angular.module("anApp")
             let extCycleNumber = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-number"
             let extDoseAdjustReason = "http://clinfhir.com/fhir/StructureDefinition/canshare-dose-adjustment-reason"
             let extCycleDay = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-day"
+
+            let validationServer = "http://hapi.fhir.org/baseR4/"       //where the profiles are
+
+            $scope.fhirSpecRoot = "http://hl7.org/fhir/"
 
             //load all patients for dropdown select. Note that a single patient can have multiple resources - use identifier to combine
             $http.get("/ds/fhir/Patient").then(
@@ -22,22 +26,71 @@ angular.module("anApp")
 
                     $scope.input.selectedPatientId = $scope.allPatientIds[0]
                     $scope.loadPatient($scope.input.selectedPatientId)
-
-
                 })
-            
-            //load the sample bundle with lab data generated from v2 message
-            /*
-            $http.get("http://actnow.canshare.co.nz:9092/baseR4/Bundle/v2mapping-1").then(
-                function (data) {
 
+
+            //get a link to the profile in the spec
+            $scope.getProfileLink = function (resource) {
+                delete $scope.urlToProfile
+                if (resource.meta && resource.meta.profile) {
+                    //for now, we can assume only a single profile...
+                    //In theory, this should resolve - byt we want the IG entry...
+                    let IGRoot = "http://build.fhir.org/ig/davidhay25/actnow/branches/main/"
+                    let profileUrl = resource.meta.profile[0]
+                    let ar = profileUrl.split('/')
+                    $scope.urlToProfile = `${IGRoot}StructureDefinition-${ar[ar.length-1]}.html`
+                    //http://canshare.co.nz/fhir/StructureDefinition/an-medication-administration
                 }
-            )
-            */
+            }
+
+            $scope.validateFromGraph = function (resource) {
+                delete $scope.graphValidationResults
+                $scope.validating = true
+                let url = `http://hapi.fhir.org/baseR4/${resource.resourceType}/$validate`
+                $scope.showWaiting = true
+                $http.post(url,resource).then(
+                    function (data) {
+
+                        $scope.graphValidationResults = data.data
+
+                    }, function (err) {
+                        $scope.graphValidationResults = err.data
+                    }
+                ).finally(
+                    function(){
+                        $scope.showWaiting = false
+                        $scope.validating = false
+                    }
+                )
+
+            }
+
+           $scope.validateFromTimeline = function (resource) {
+                delete $scope.timelineValidationResults
+               $scope.validating = true
+               let url = `http://hapi.fhir.org/baseR4/${resource.resourceType}/$validate`
+               $scope.showWaiting = true
+               $http.post(url,resource).then(
+                   function (data) {
+
+                       $scope.timelineValidationResults = data.data
+
+                   }, function (err) {
+                       $scope.timelineValidationResults = err.data
+                   }
+               ).finally(
+                   function(){
+                       $scope.showWaiting = false
+                       $scope.validating = false
+                   }
+               )
+
+           }
 
             $scope.validate = function() {
                 $scope.validating = true
                 let url = "http://hapi.fhir.org/baseR4/Bundle/$validate"
+                $scope.showWaiting = true
                 $http.post(url,$scope.allResourcesBundle).then(
                     function (data) {
 
@@ -49,6 +102,7 @@ angular.module("anApp")
                     }
                 ).finally(
                     function(){
+                        $scope.showWaiting = false
                         $scope.validating = false
                     }
                 )
@@ -172,7 +226,7 @@ angular.module("anApp")
 
 
             //locate a standard in actnow
-            $scope.searchStandard = function() {
+            $scope.searchStandardDEP= function() {
                 $uibModal.open({
                     backdrop: 'static',      //means can't close by clicking on the backdrop.
                     keyboard: false,       //same as above.
@@ -183,6 +237,16 @@ angular.module("anApp")
 
             }
 
+            $scope.graphTabSelected = function(){
+                $timeout(function(){
+                    if ($scope.chart) {
+                        $scope.chart.fit();
+                    }
+
+
+                },1000)
+
+            }
 
             //thing is an object with a .resource element - from the cycles table tab
             $scope.selectThing = function(thing){
@@ -216,6 +280,19 @@ angular.module("anApp")
                 $http.get(url1).then(
                     function(data) {
                         $scope.allResourcesBundle = data.data
+                        //create a sorted list for the list
+                        $scope.resourcesList = []
+                        $scope.allResourcesBundle.entry.forEach(function (entry) {
+                            $scope.resourcesList.push(entry.resource)
+                        })
+                        $scope.resourcesList.sort(function (a,b) {
+                            if (a.resourceType > b.resourceType) {
+                                return 1
+                            } else {
+                                return -1
+                            }
+                        })
+
                         //console.log(data.data)
                         $scope.allEntries = []
                         data.data.entry.forEach(function (entry) {
@@ -245,6 +322,9 @@ angular.module("anApp")
                 })
             }
 
+            $scope.selectResourceFromList = function (resource) {
+                $scope.selectedResourceFromList = resource
+            }
             $scope.loadReports = function (patientIdentifier) {
                 //load all the reports for a patient. Right now, this is all reports...
                 //note that is real life, these would actulally be DiagnosticReports with observations... (but the data should be the same)
@@ -347,34 +427,29 @@ angular.module("anApp")
                 $scope.allEntries.forEach(function (entry) {
                     let resource = entry.resource
 
-
-                    if (resource.resourceType == 'CarePlan' && getCarePlanCategory(resource) == 'regimen') {
-
-
-                            let vo = {resource:resource,supportingInfo:[]}
-                            if (resource.supportingInfo) {
-                                resource.supportingInfo.forEach(function(si){
-                                    vo.supportingInfo.push($scope.hashAllObsById[si.reference])
-                                    // let ar = si.
-                                })
-                            }
-
-                            //now add all the Observations that refer to this CP via a 'basedOn link
-                            //todo - haven't got any yet
-
-                            $scope.arRegimens.push(vo)
-                            //find the Condition that this regimen refers to.
-                            //todo when there are multiple regimens, this will need to change...
-                            findCondition(resource)
+                    if (resource.resourceType == 'CarePlan' && getCarePlanCategory(resource) == 'regimenCP') {
+                        //this is a regimen CarePlan
+                        let vo = {resource:resource,supportingInfo:[]}
+                        if (resource.supportingInfo) {
+                            resource.supportingInfo.forEach(function(si){
+                                vo.supportingInfo.push($scope.hashAllObsById[si.reference])
+                                // let ar = si.
+                            })
                         }
 
+                        //now add all the Observations that refer to this CP via a 'basedOn link
+                        //todo - haven't got any yet
 
-
-
-
+                        $scope.arRegimens.push(vo)
+                        //find the Condition that this regimen refers to.
+                        //todo when there are multiple regimens, this will need to change...
+                        findCondition(resource)
+                    }
 
 
                 })
+
+                $scope.clinicalSummary = anSvc.createSummary($scope.allEntries)
             }
 
             //find the condition associated with this regimen plan
@@ -511,7 +586,7 @@ angular.module("anApp")
                 $scope.allEntries.forEach(function (entry) {
                     let resource = entry.resource
 
-                    if (resource.resourceType == 'CarePlan' && getCarePlanCategory(resource) == 'cycle') {
+                    if (resource.resourceType == 'CarePlan' && getCarePlanCategory(resource) == 'cycleCP') {
                         //this is a cycle CP
                         let cycle = {}
                         cycle.period = resource.period
@@ -637,13 +712,16 @@ angular.module("anApp")
                         item.start = date
                         item.group = drugName
                         item.MA = MA
+                        item.resource = MA
                         item.observations = hashMedObs[`MedicationAdministration/${MA.id}`]
                         if (item.observations && item.observations.length > 0) {
                             item.className = 'red'
                             item.title = "Has observations"
                         }
 
-
+                        if (MA.dosage) {
+                            item.content = MA.dosage.text
+                        }
 
                         arData.push(item)
 
@@ -664,6 +742,7 @@ angular.module("anApp")
                             }
 
                             let drugName = rx.medicationCodeableConcept.text + " (rx) " + route
+
                             //just the details of the med
                             uniqueMeds[drugName] = {id:drugName,content:drugName}
 
@@ -672,26 +751,48 @@ angular.module("anApp")
                             item.start = date
                             item.group = drugName
                             item.rx = rx            //just for the display todo - make rx separate
-                            //item.className = 'rx'
-                            /*
-                            item.observations = hashMedObs[`MedicationAdministration/${MA.id}`]
-                            if (item.observations && item.observations.length > 0) {
-                                item.className = 'red'
-                                item.title = "Has observations"
-                            }
-*/
+                            item.resource = rx
+
+
                             arData.push(item)
 
-
-
-                            }
-
+                        }
                     })
-
                 })
 
 
 
+                let uniqueObs = {}      //has of unique observation types
+                Object.keys($scope.hashAllObsById).forEach(function (key) {
+                    let obs = $scope.hashAllObsById[key]
+                    if (obs.effectiveDateTime) {        //todo - temp - just a shart term hack...
+                        let item = {}
+                        item.id = ctr++
+                        item.start = obs.effectiveDateTime
+                        let text = ""
+                        if (obs.code && obs.coding) {
+                            text = obs.coding[0].code
+                        }
+                        if (obs.code.text) {
+                            text = obs.code.text
+                        }
+
+
+                        uniqueObs[text] = {id:text,content:text}
+                        item.content = ""
+                        if (obs.valueQuantity) {
+                            item.content =  obs.valueQuantity.value.toString()
+                        }
+
+                        item.group = text
+                        item.obs  = obs
+                        item.resource = obs
+                        arData.push(item)
+                    }
+
+
+
+                })
 
                 //create the group array (individual drugs)
                 let arGroups = []
@@ -699,6 +800,13 @@ angular.module("anApp")
                     let group = uniqueMeds[key]
                     arGroups.push({id:group.id, content:group.content})
                 })
+
+                //add the observation group
+                Object.keys(uniqueObs).forEach(function (key) {
+                    let group = uniqueObs[key]
+                    arGroups.push({id:group.id, content:group.content, style :"background-color:pink"})
+                })
+
 
                 var container = document.getElementById('medTimeline');
 
@@ -716,10 +824,16 @@ angular.module("anApp")
                 container.onclick = function(event) {
                     var props = timeline.getEventProperties(event)
                     let id = props.item
+                    delete $scope.timelineValidationResults
                     $scope.selectedTimeLineItem = arData[id]
-                    $scope.$digest()
+                    if ($scope.selectedTimeLineItem && $scope.selectedTimeLineItem.resource) {
+                        $scope.getProfileLink($scope.selectedTimeLineItem.resource)
+                    }
+
                     console.log(arData[id])
-                    //console.log(props);
+                    $scope.$digest()
+
+
                 }
 
 
@@ -819,6 +933,7 @@ angular.module("anApp")
 
                         if (node.data && node.data.resource) {
                             $scope.selectedResource = node.data.resource;
+                            $scope.getProfileLink($scope.selectedResource)
                             $scope.$digest()
                         }
 

@@ -1,0 +1,87 @@
+<div ng-repeat="regimen in clinicalSummary.regimens">
+
+    <div class="row">
+        <div class="col-md-6">
+            <br/>
+
+            <div>
+                <span class="myLabel">Regimen type</span>
+                {{anSvc.getSingleExtension(regimen.regimenCP,"http://hl7.org.nz/fhir/StructureDefinition/sact-regimen-type","CodeableConcept").text}}
+            </div>
+
+            <div>
+                <span class="myLabel">Treatment intent</span>
+                {{anSvc.getSingleExtension(regimen.regimenCP,"http://canshare.co.nz/fhir/StructureDefinition/an-iot","CodeableConcept").text}}
+            </div>
+
+            <div>
+                <span class="myLabel">Period of treatment</span>
+                {{regimen.regimenCP.period.start}} to {{regimen.regimenCP.period.end}}
+            </div>
+
+
+            <div>
+                <span class="myLabel">Text</span>
+                {{regimen.regimenCP.text.div | cleanTextDiv}}
+            </div>
+
+            <div>
+                <span class="myLabel">Current status</span>
+                {{regimen.regimenCP.status}} &nbsp; &nbsp; &nbsp; <em>{{regimen.revoked.reason.valueCodeableConcept.text}}</em>
+<!--
+                <br/>
+                <span class="myLabel">Discontinue reason</span>
+                <em>{{regimen.revoked.reason.valueCodeableConcept.text}}</em>
+               -->
+
+
+            </div>
+
+
+            <div ng-repeat = "condition in regimen.addresses">
+                <span class="myLabel">Diagnosis</span>
+                {{condition.code.text}} (<em>{{condition.code.coding[0].system}} {{condition.code.coding[0].code}}</em>)
+                <br/>
+                <span class="myLabel">Laterality</span>
+                {{anSvc.getSingleExtension(condition,"http://hl7.org/fhir/us/mcode/StructureDefinition/mcode-laterality-qualifier","String")}}
+            </div>
+
+            <div ng-show="regimen.gleason">
+                <span class="myLabel">Gleason</span>
+                Primary: {{regimen.gleason.primary}}  &nbsp; &nbsp; &nbsp; Secondary:{{regimen.gleason.secondary}}   &nbsp; &nbsp; &nbsp; Tertiary:{{regimen.gleason.tertiary}}
+            </div>
+
+            <div ng-show="regimen.pTNM">
+                <span class="myLabel">Pathological TNM</span>
+                Group: {{regimen.pTNM.group.coding[0].code}} &nbsp; &nbsp; &nbsp; T:{{regimen.pTNM.T.coding[0].code}}&nbsp; &nbsp; &nbsp;
+                N:{{regimen.pTNM.N.coding[0].code}}  &nbsp; &nbsp; &nbsp; M:{{regimen.pTNM.M.coding[0].code}}
+            </div>
+
+            <div ng-show="regimen.cTNM">
+                <span class="myLabel">Clinical TNM</span>
+                Group: {{regimen.cTNM.group.coding[0].code}} &nbsp; &nbsp; &nbsp; T:{{regimen.cTNM.T.coding[0].code}}&nbsp; &nbsp; &nbsp;
+                N:{{regimen.cTNM.N.coding[0].code}}  &nbsp; &nbsp; &nbsp; M:{{regimen.cTNM.M.coding[0].code}}
+            </div>
+
+
+            <div ng-show="regimen.cycles.length > 0" >
+                <div ng-repeat="cycle in regimen.cycles">
+                    <span class="myLabel"> Cycle #{{$index}}</span>  {{cycle.status}}  from {{cycle.period.start}} to {{cycle.period.end}}
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="col-md-6">
+            <div class="scroll">
+                <pre>{{regimen | json}}</pre>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+
+
