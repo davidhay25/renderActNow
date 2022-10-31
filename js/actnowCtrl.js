@@ -51,7 +51,8 @@ angular.module("anApp")
             $scope.validateFromGraph = function (resource) {
                 delete $scope.graphValidationResults
                 $scope.validating = true
-                let url = `http://hapi.fhir.org/baseR4/${resource.resourceType}/$validate`
+                //let url = `http://hapi.fhir.org/baseR4/${resource.resourceType}/$validate`
+                let url = "/an/validate"
                 $scope.showWaiting = true
                 $http.post(url,resource).then(
                     function (data) {
@@ -157,16 +158,16 @@ angular.module("anApp")
 
 
             //select patient on diagnosis
-            $scope.selectByIdentifier = function() {
+            $scope.selectByRegimenIdentifier = function() {
                 $uibModal.open({
                     backdrop: 'static',      //means can't close by clicking on the backdrop.
                     keyboard: false,       //same as above.
                     //size: 'sm',
-                    templateUrl: 'modalTemplates/selectByIdentifier.html',
+                    templateUrl: 'modalTemplates/selectByRegimenIdentifier.html',
                     controller: function ($scope) {
                         $scope.input = {}
-                        $scope.input.system = "http://clinfhir.com"
-                        $scope.input.value = "patient5"
+                        //$scope.input.system = "http://clinfhir.com"
+                        //$scope.input.value = "patient5"
                         $scope.select = function () {
                             let vo = {system:$scope.input.system,value:$scope.input.value}
                             $scope.$close(vo)
@@ -175,19 +176,29 @@ angular.module("anApp")
                 }).result.then(
                     function (vo) {
                         console.log(vo)
-                        let qry = `/ds/fhir/Patient?identifier=${vo.system}|${vo.value}`
+                        let qry = `/ds/fhir/CarePlan?identifier=${vo.value}`
+                        if (vo.system) {
+                            let qry = `/ds/fhir/CarePlan?identifier=${vo.system}|${vo.value}`
+                        }
+                        //let qry = `/ds/fhir/Patient?identifier=${vo.system}|${vo.value}`
+
                         $http.get(qry).then(
                             function (data) {
                                 console.log(data)
                                 if (data.data.entry) {
                                     switch (data.data.entry.length) {
                                         case 0 :
-                                            alert("There were no matching patients")
+                                            alert("There were no matching regimens")
                                             break
                                         case 1 :
-                                            let patient = data.data.entry[0].resource
-                                            console.log(patient)
-                                            $scope.loadPatient(patient.id)
+                                            //the regimen careplan was located. Load the associated patient,,,
+                                            let regimenCP = data.data.entry[0].resource
+                                            let ref = regimenCP.subject.reference
+                                            let ar = ref.split('/')
+                                            let patientId = ar[ar.length-1]
+                                            //let patient = data.data.entry[0].resource
+                                            console.log(patientId)
+                                            $scope.loadPatient(patientId)
                                             break
                                         default :
                                             alert(`There were ${data.data.entry.length} patients with this identifier. This is an error. Try a different one.`)
@@ -217,11 +228,7 @@ angular.module("anApp")
                         //pass back the regimen. We cal select the patient as the id's are the same (though could get the patient id from the subject if we need....)
 
                         $scope.input.selectedPatientId = regimen.id
-                        //set the dropdown of patient ids - todo won't scale!
-                    //    $scope.allPatientIds.forEach(function (id) {
 
-
-                      //  })
 
                         $scope.loadPatient(regimen.id)
                     })
@@ -274,10 +281,11 @@ angular.module("anApp")
 
             $scope.loadPatient = function(id) {
                 $scope.showWaiting = true
+
+                //if
+
+
                 delete  $scope.selectedCycleFromSummary
-                //let id = $scope.input.selectedPatientId
-                //console.log($scope.input.selectedPatientId)
-                //console.log("Loading data for " + id)
 
                 $scope.loadReports()       //todo add patient filter
 

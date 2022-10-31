@@ -575,7 +575,6 @@ function makeCycleCP(vo,patient,cpRegimen) {
     cp.id = createUUID()
     // - don't delete just yet addExtension(cp,extOriginalData,'valueString',JSON.stringify(ar))   //the data used to create this one
     cp.category = [cycleCategory]
-
     cp.identifier = [{system:identifierRoot + "CarePlan",value:ar[1]}]
 
     cp.title = "Plan for cycle"

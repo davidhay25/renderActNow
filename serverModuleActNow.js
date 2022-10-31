@@ -8,6 +8,24 @@ let serverRoot;
 function setup(app,sr) {
     serverRoot = sr
 
+    app.post('/an/validate',function (req,res) {
+        let resource = req.body
+        let url = `http://hapi.fhir.org/baseR4/${resource.resourceType}/$validate`
+        axios.post(url,resource)
+            .then(function (response){
+                //console.log(response.data)
+                res.status(response.status).json(response.data)
+            })
+            .catch(function (err){
+                //console.log(err)
+                if (err.response) {
+                    res.status(err.response.status).send(err.response.data)
+                } else {
+                    res.status(500).send(err.response.data)
+                }
+            })
+    })
+
     app.get('/an/fhir/Patient/:patientId/\[$]everything',async function(req,res){
 
 

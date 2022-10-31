@@ -112,12 +112,11 @@
                 <h4>Cycle #{{selectedCycleFromSummary.meta.cycleNumber}} summary</h4>
 
                 <uib-tabset>
-                    <uib-tab heading = "Details">
+                    <uib-tab heading = "Linked resources">
                         <table class="table table-bordered">
-                            <tr><th>Date</th><th>Display</th><th>Type</th></tr>
-                            <tr class = 'clickable' ng-repeat = "item in selectedCycleFromSummary.referenced"
-                                ng-click="input.csSelectedResource = item.resource">
-                                <td>{{item.summary.date}}</td>
+                            <tr><th>Date</th><th>Text</th><th>Type</th></tr>
+                            <tr ng-repeat = "item in selectedCycleFromSummary.referenced">
+                                <td><div class = 'clickable' ng-click="input.csSelectedResource = item.resource">{{item.summary.date}}</div></td>
                                 <td>{{item.summary.display}}</td>
                                 <td>{{item.resource.resourceType}}</td>
                             </tr>
@@ -125,7 +124,10 @@
 
                         <pre ng-show="input.csSelectedResource">{{input.csSelectedResource | json}}</pre>
                     </uib-tab>
-                    <uib-tab heading = "Json">
+                    <uib-tab heading = "Cycle CarePlan Json">
+                        <pre ng-show="selectedCycleFromSummary">{{selectedCycleFromSummary.resource | json}}</pre>
+                    </uib-tab>
+                    <uib-tab heading = "Development Json (can ignore)">
                         <pre ng-show="selectedCycleFromSummary">{{selectedCycleFromSummary | json}}</pre>
                     </uib-tab>
                 </uib-tabset>

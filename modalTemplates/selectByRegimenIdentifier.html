@@ -18,8 +18,7 @@
 
       <div class="col-md-5 col-sm-5">
         <button class="btn btn-primary pull-right"
-
-                ng-click="select()">Select</button>
+          ng-show="input.value" ng-click="select()">Find</button>
         <button class="btn btn-link pull-right" ng-click="$dismiss()">Cancel</button>
 
       </div>
@@ -35,22 +34,24 @@
         System
       </div>
       <div class="col-sm-9 col-md-9">
-        <input type="text" class="form-control" ng-model="input.system"/>
+        <input type="text" placeholder = "Can be left blank" class="form-control" ng-model="input.system"/>
       </div>
     </div>
+
 
     <div class="row" >
       <div class="col-sm-3 col-md-3">
         Value
       </div>
       <div class="col-sm-9 col-md-9">
-        <input type="text" class="form-control" ng-model="input.value"/>
+        <input type="text" placeholder="The regimen identifier to find" class="form-control" ng-model="input.value"/>
       </div>
     </div>
 
   </div>
 
   <div class="modal-header">
-
+    <em>Enter the identifier of the regimen you wish to view. If it is found, then the patient
+    who is the subject of the regimen will be loaded, along with all their regimens. The system can be ignored ATM.</em>
   </div>
 </div>
