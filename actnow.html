@@ -277,6 +277,56 @@
             -->
         </uib-tab>
 
+        <uib-tab heading="Full Graph" select="graphTabSelected()">
+            <div class="row">
+                <div class="col-md-7">
+                    <div id="graph"></div>
+                </div>
+                <div class="col-md-5">
+                    <div class="pull-right" ng-show="selectedResource">
+
+
+                        {{selectedResource.resourceType}}:
+                        <a target="_blank" ng-href="{{fhirSpecRoot}}{{selectedResource.resourceType}}.html"> Specification </a>
+                        <a ng-show = "urlToProfile" target="_blank" ng-href="{{urlToProfile}}"> Profile </a>
+
+
+                        <!--
+                                                <a target="_blank" ng-href="{{fhirSpecRoot}}{{selectedResource.resourceType}}.html">{{selectedResource.resourceType}} specification</a>
+                                            -->
+                    </div>
+                    <div class="clearfix"></div>
+
+                    <uib-tabset ng-show="selectedResource">
+                        <uib-tab heading="Json">
+                            <pre>{{selectedResource | json}}</pre>
+                        </uib-tab>
+                        <uib-tab heading="Validate">
+
+
+
+
+                            <button class="btn btn-link pull-right" ng-click="validateFromGraph(selectedResource)">Validate</button>
+
+                            <div class="clearfix"></div>
+
+                            <div class="resourceScroll">
+                                <pre ng-show="graphValidationResults">{{graphValidationResults | json}}</pre>
+                            </div>
+
+
+                        </uib-tab>
+                    </uib-tabset>
+
+
+
+
+                </div>
+            </div>
+
+        </uib-tab>
+
+
 
         <uib-tab heading="Medications timeline">
 
@@ -490,55 +540,6 @@
 
 
 
-
-        </uib-tab>
-
-        <uib-tab heading="Full Graph" select="graphTabSelected()">
-            <div class="row">
-                <div class="col-md-7">
-                    <div id="graph"></div>
-                </div>
-                <div class="col-md-5">
-                    <div class="pull-right" ng-show="selectedResource">
-
-
-                        {{selectedResource.resourceType}}:
-                        <a target="_blank" ng-href="{{fhirSpecRoot}}{{selectedResource.resourceType}}.html"> Specification </a>
-                        <a ng-show = "urlToProfile" target="_blank" ng-href="{{urlToProfile}}"> Profile </a>
-
-
-<!--
-                        <a target="_blank" ng-href="{{fhirSpecRoot}}{{selectedResource.resourceType}}.html">{{selectedResource.resourceType}} specification</a>
-                    -->
-                    </div>
-                    <div class="clearfix"></div>
-
-                    <uib-tabset ng-show="selectedResource">
-                        <uib-tab heading="Json">
-                            <pre>{{selectedResource | json}}</pre>
-                        </uib-tab>
-                        <uib-tab heading="Validate">
-
-
-
-
-                            <button class="btn btn-link pull-right" ng-click="validateFromGraph(selectedResource)">Validate</button>
-
-                            <div class="clearfix"></div>
-
-                            <div class="resourceScroll">
-                                <pre ng-show="graphValidationResults">{{graphValidationResults | json}}</pre>
-                            </div>
-
-
-                        </uib-tab>
-                    </uib-tabset>
-
-
-
-
-                </div>
-            </div>
 
         </uib-tab>
 

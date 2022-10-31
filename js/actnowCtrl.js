@@ -4,7 +4,7 @@ angular.module("anApp")
         function ($scope,$http,$uibModal,anSvc,$timeout) {
 
             $scope.input = {}
-            //$scope.moment = moment
+            $scope.moment = moment
             $scope.anSvc = anSvc
 
             let extCycleNumber = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-number"
@@ -28,6 +28,11 @@ angular.module("anApp")
                     $scope.loadPatient($scope.input.selectedPatientId)
                 })
 
+            $scope.selectCycleFromSummary = function(cycle) {
+                $scope.selectedCycleFromSummary = cycle
+                delete $scope.input.csSelectedResource
+                //console.log(cycle)
+            }
 
             //get a link to the profile in the spec
             $scope.getProfileLink = function (resource) {
@@ -269,6 +274,7 @@ angular.module("anApp")
 
             $scope.loadPatient = function(id) {
                 $scope.showWaiting = true
+                delete  $scope.selectedCycleFromSummary
                 //let id = $scope.input.selectedPatientId
                 //console.log($scope.input.selectedPatientId)
                 //console.log("Loading data for " + id)

@@ -38,7 +38,8 @@ angular.module("anApp")
         tnmPathologicalCode = "http://loinc.org|21908-9"
 
         extDiscontinued = "http://canshare.co.nz/fhir/StructureDefinition/an-regimen-discontinued"
-
+        extCycleNumber = "http://canshare.co.nz/fhir/StructureDefinition/an-cycle-number"
+        extCyclePlannedLength = "http://canshare.co.nz/fhir/StructureDefinition/an-cycle-planned-length"
 
         return {
 
@@ -191,33 +192,96 @@ angular.module("anApp")
                             if (resource.partOf) {
                                 resource.partOf.forEach(function (po) {
                                     if (po.reference == refToRegimenCP ) {
-                                            regimen.cycles.push(resource)
+                                        let item = {resource:resource,referenced:[],meta : {}}
+
+                                        //the extensions - cyclenumber & length
+                                        item.meta.cycleNumber = that.getSingleExtension(resource,extCycleNumber,"Integer")
+                                        item.meta.plannedCycleLength = that.getSingleExtension(resource,extCyclePlannedLength,"Integer")
+
+
+                                        let startDate = moment(resource.period.start)
+                                        let endDate = moment(resource.period.end)
+                                        item.meta.cycleLength = endDate.diff(startDate,'days')
+
+
+
+                                        let key = "CarePlan/"+resource.id
+                                        //now locate all resources that have a 'supporting information' reference to the cycle
+                                        allEntries.forEach(function (entry1) {
+                                            let resource1 = entry1.resource
+                                            if (resource1.supportingInformation) {
+                                                resource1.supportingInformation.forEach(function (si) {
+                                                    if (si.reference == key) {
+                                                        let thing = {resource:resource1}
+                                                        thing.summary = getSummary(resource1)
+                                                        item.referenced.push(thing)
+                                                    }
+                                                })
+                                            }
+
+                                        })
+                                        //now sort the resources by date - a bit tricky as different resources have different date elements...
+
+                                        item.referenced.sort(function(a,b){
+                                            let da1 = a.summary.date
+                                            let da2 = b.summary.date
+                                            if (da1 > da2) {
+                                                return 1
+                                            } else {
+                                                return -1
+                                            }
+                                        })
+
+                                        regimen.cycles.push(item)
+
                                     }
                                 })
 
                             }
                         }
+
+                        //now sort the cycles by date
+                        try {
+                            regimen.cycles.sort(function(a,b){
+                                if (a.resource.period.start > b.resource.period.start) {
+                                    return 1
+                                } else {
+                                    return -1
+                                }
+                            })
+                        } catch (ex) {
+                            //if there's a missing period will screw up the sort...
+                        }
+
                     })
 
-
-                    //regimen outcome
-
-
-
-
-/*
-                    //resources / observations made after the regimen ends. Things like blood tests...
-                    allEntries.forEach(function (entry) {
-                        let resource = entry.resource
-                        if (resource.basedOn)
-
-                    })
-*/
                 })
 
 
 
                 return summary
+
+                function getSummary(resource) {
+                    let summary = {}
+                    summary.date = new Date().toISOString()
+                    summary.display = $filter('cleanTextDiv')(resource.text.div);
+                    switch (resource.resourceType) {
+                        case "Observation" :
+                            summary.date = resource.effectiveDateTime
+
+                            break
+                        case "MedicationAdministration" :
+                            summary.date = resource.effectivePeriod.start
+
+                            break
+                        case "MedicationRequest" :
+                            summary.date = resource.authoredOn
+
+                            break
+                    }
+                    return summary
+
+                }
 
             },
 

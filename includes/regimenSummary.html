@@ -16,13 +16,21 @@
 
             <div>
                 <span class="myLabel">Period of treatment</span>
+
                 {{regimen.regimenCP.period.start}} to {{regimen.regimenCP.period.end}}
+                &nbsp; &nbsp; &nbsp;
+                {{moment(regimen.regimenCP.period.end).diff(moment(regimen.regimenCP.period.start),'days')}} days
             </div>
 
 
             <div>
                 <span class="myLabel">Text</span>
                 {{regimen.regimenCP.text.div | cleanTextDiv}}
+            </div>
+
+            <div>
+                <span class="myLabel">Identifier</span>
+                {{regimen.regimenCP.identifier[0].value}}
             </div>
 
             <div>
@@ -65,19 +73,78 @@
 
 
             <div ng-show="regimen.cycles.length > 0" >
+                <br/>
+
+                <table class="table table-bordered">
+                    <tr><th>Number</th><th>Status</th><th>Start</th><th>End</th><th>Length</th><th>Planned</th><th>Id</th></tr>
+                    <tr ng-repeat="cycle in regimen.cycles">
+                        <td><span class="clickable" ng-click="selectCycleFromSummary(cycle)">Cycle #{{cycle.meta.cycleNumber}}</span></td>
+                        <td>{{cycle.resource.status}}</td>
+                        <td>{{cycle.resource.period.start}}</td>
+                        <td>
+                            {{cycle.resource.period.end}}
+                        </td>
+                        <td>{{cycle.meta.cycleLength}} </td>
+                        <td>{{cycle.meta.plannedCycleLength}}</td>
+                        <td>{{cycle.resource.identifier[0].value}}</td>
+                    </tr>
+
+                    </tr>
+                </table>
+<!--
                 <div ng-repeat="cycle in regimen.cycles">
-                    <span class="myLabel"> Cycle #{{$index}}</span>  {{cycle.status}}  from {{cycle.period.start}} to {{cycle.period.end}}
+                    <span class="myLabel clickable"> <span  ng-click="selectCycleFromSummary(cycle)">Cycle #{{cycle.meta.cycleNumber}}</span></span>
+                    {{cycle.resource.status}}  from {{cycle.resource.period.start}} to {{cycle.resource.period.end}}
+                    &nbsp; &nbsp; &nbsp; ({{cycle.resource.identifier[0].value}})
                 </div>
+                -->
+
+
+
             </div>
 
 
         </div>
 
         <div class="col-md-6">
-            <div class="scroll">
-                <pre>{{regimen | json}}</pre>
+            <br/>
+            <div ng-show = "selectedCycleFromSummary">
+                <h4>Cycle #{{selectedCycleFromSummary.meta.cycleNumber}} summary</h4>
+
+                <uib-tabset>
+                    <uib-tab heading = "Details">
+                        <table class="table table-bordered">
+                            <tr><th>Date</th><th>Display</th><th>Type</th></tr>
+                            <tr class = 'clickable' ng-repeat = "item in selectedCycleFromSummary.referenced"
+                                ng-click="input.csSelectedResource = item.resource">
+                                <td>{{item.summary.date}}</td>
+                                <td>{{item.summary.display}}</td>
+                                <td>{{item.resource.resourceType}}</td>
+                            </tr>
+                        </table>
+
+                        <pre ng-show="input.csSelectedResource">{{input.csSelectedResource | json}}</pre>
+                    </uib-tab>
+                    <uib-tab heading = "Json">
+                        <pre ng-show="selectedCycleFromSummary">{{selectedCycleFromSummary | json}}</pre>
+                    </uib-tab>
+                </uib-tabset>
+
             </div>
 
+<!--
+
+            <pre>{{selectedCycleFromSummary | json}}</pre>
+
+            <div class="scroll">
+
+
+
+
+                <pre>{{regimen | json}}</pre>
+
+            </div>
+-->
         </div>
     </div>
 
