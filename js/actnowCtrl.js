@@ -52,7 +52,8 @@ angular.module("anApp")
             $scope.executeQuery = function (qry) {
                 delete $scope.input.selectedFromQuery
                 //let url = "http://localhost:9092/baseR4/" + qry
-                let url = "/proxy?url=" + "http://localhost:9092/baseR4/" + qry
+                let url = "/proxy?url=" + btoa("http://localhost:9092/baseR4/" + qry)
+
 
                 $http.get(url).then(
                     function (data) {

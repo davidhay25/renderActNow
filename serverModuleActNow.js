@@ -12,9 +12,13 @@ function setup(app,sr) {
     app.get('/proxy',async function(req,res) {
 
         let url = req.query.url
-        console.log(url)
+
+        const buff = Buffer.from(url, 'base64');
+        const qry = buff.toString('utf-8');
+
+        console.log(qry)
         try {
-            let results = await axios.get(url)      //get the first
+            let results = await axios.get(qry)      //get the first
             console.log(results.data)
 
             res.send(results.data)
