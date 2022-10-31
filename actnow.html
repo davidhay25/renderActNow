@@ -106,53 +106,46 @@
 
         <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
 
-        <div class="container-fluid">
-            <div class="col-md-5">
+            <div class="container-fluid">
+                <div class="col-md-5">
+                        <span>
+                            <a class="navbar-brand" href="#">
+                                CanShare: ACT-Now Chemotherapy data
+                            </a>
+                        </span>
+                </div>
 
-                    <span>
-                        <a class="navbar-brand" href="#">
-                            CanShare: ACT-Now Chemotherapy and Pathology data
-                        </a>
-                    </span>
-            </div>
+                <div class="col-md-2 col-sm-2">
+                    <div class="navbar-text">
 
-            <div class="col-md-2 col-sm-2">
-                <div class="navbar-text">
-
-
-
+                    </div>
 
                 </div>
 
-            </div>
+                <div class="col-md-1 col-sm-1">
+                    <div class="navbar-form navbar-left">
+                        <img ng-show="showWaiting" src="css/ajax_loader_blue_32.gif"/>
 
-            <div class="col-md-1 col-sm-1">
-                <div class="navbar-form navbar-left">
-                    <img ng-show="showWaiting" src="css/ajax_loader_blue_32.gif"/>
+                    </div>
+                </div>
+
+                <div class="col-md-1 col-sm-1">
 
                 </div>
+
+                <div class="col-md-3 col-sm-3">
+                    <div class="navbar-text pull-right">
+                        <a
+                           href="http://build.fhir.org/ig/davidhay25/actnow/branches/main/index.html" target="_blank">ACT-NOW Implementation Guide</a>
+                    </div>
+                </div>
             </div>
-
-            <div class="col-md-1 col-sm-1">
-
-            </div>
-
-            <div class="col-md-3 col-sm-3">
-
-
-            </div>
-        </div>
-    </nav>
-
-
-
+        </nav>
 
         <div class="row">
             <div class="col-md-1">
-                Patient
+                Patient Id
             </div>
-
-
 
             <div class="col-md-2">
                 <select class="form-control" ng-model="input.selectedPatientId"
@@ -173,13 +166,9 @@
 
             </div>
 
-            <div class="col-md-3">
-                <a href="http://build.fhir.org/ig/davidhay25/actnow/branches/main/index.html" target="_blank">ACT-NOW Implementation Guide</a>
-
-<!--
-                <em>List of associated Q - add/delete/edit</em>
-
-                <button class="btn btn-link" ng-click = "searchStandard()">Find Structured Path standard</button>
+            <div class="col-md-4">
+                <!--
+                <a class="pull-right" href="http://build.fhir.org/ig/davidhay25/actnow/branches/main/index.html" target="_blank">ACT-NOW Implementation Guide</a>
 -->
             </div>
 
@@ -192,94 +181,13 @@
 
             <ng-include src = "'includes/regimenSummary.html'"></ng-include>
 
-<!--
-            <em>Condition - </em>
 
-            <div>
-                <em>pre & post regimen observations</em>
-            </div>
-
-            <div ng-repeat = "regimen in arRegimens">
-
-                <uib-tabset>
-                    <uib-tab heading = "Display">
-                        <br/>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        Title
-                                    </div>
-                                    <div class="col-md-9">
-                                        <div class="rounded-box">{{regimen.resource.title}}</div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        Purpose
-                                    </div>
-                                    <div class="col-md-9">
-                                        <div class="rounded-box">
-                                            {{anSvc.getSingleExtension(regimen.resource,"http://canshare.co.nz/fhir/StructureDefinition/tx-intent","CodeableConcept").text}}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-3">
-                                        Period
-                                    </div>
-                                    <div class="col-md-9">
-                                        <div class="rounded-box">
-                                            {{regimen.resource.period.start}} to {{regimen.resource.period.end }}
-                                        </div>
-                                    </div>
-                                </div>
-
-
-
-                            </div>
-                            <div class="col-md-4">
-
-                                <strong>Supporting Info</strong>
-                                <div class="list-group">
-                                    <div class="list-group-item"
-                                         ng-click = "input.obsFromRegimenView = obs"
-                                         ng-repeat = "obs in regimen.supportingInfo track by $index">
-
-                                        {{obs.code.text}}:  {{obs.valueQuantity.value}} {{obs.valueQuantity.unit}} {{obs.valueString}}
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="col-md-4">
-                                <pre>{{input.obsFromRegimenView | json}}</pre>
-                            </div>
-                        </div>
-
-                    </uib-tab>
-                    <uib-tab heading = "Regimen Json">
-                        <pre>{{regimen.resource | json}}</pre>
-                    </uib-tab>
-                    <uib-tab heading = "Condition Json">
-                        <pre>{{addressedCondition | json}}</pre>
-                    </uib-tab>
-                    <uib-tab heading = "Patient Json">
-                        <pre>{{selectedPatient | json}}</pre>
-                    </uib-tab>
-
-
-                </uib-tabset>
-
-
-            </div>
-
-            -->
         </uib-tab>
 
         <uib-tab heading="Full Graph" select="graphTabSelected()">
             <div class="row">
                 <div class="col-md-7">
+                    <em class="pull-right">Patient resource not included in graph</em>
                     <div id="graph"></div>
                 </div>
                 <div class="col-md-5">
@@ -304,14 +212,19 @@
                         <uib-tab heading="Validate">
 
 
-
-
                             <button class="btn btn-link pull-right" ng-click="validateFromGraph(selectedResource)">Validate</button>
 
                             <div class="clearfix"></div>
 
                             <div class="resourceScroll">
+                                <div ng-repeat="iss in graphValidationResults.issue">
+                                    <pre>{{iss | json}}</pre>
+                                </div>
+
+
+<!--
                                 <pre ng-show="graphValidationResults">{{graphValidationResults | json}}</pre>
+                                -->
                             </div>
 
 
@@ -325,8 +238,6 @@
             </div>
 
         </uib-tab>
-
-
 
         <uib-tab heading="Medications timeline">
 
@@ -472,7 +383,7 @@
                                     <td>
                                         <div class="clickable"
                                              ng-click="selectThing(cycle)">
-                                            {{cycle.cycleNumber}}</div>
+                                            Cycle #{{cycle.cycleNumber}}</div>
                                     </td>
                                     <td>{{cycle.period.start}}</td>
                                     <td>{{cycle.period.end}}</td>
@@ -872,9 +783,16 @@ Add discontinue events (?or will just show)
 
         </uib-tab>
 
+
+
         <uib-tab heading="Full Patient Json">
             <pre>{{allResourcesBundle | json}}</pre>
         </uib-tab>
+
+        <uib-tab heading="CanShare API query">
+            <ng-include src = "'includes/api.html'"></ng-include>
+        </uib-tab>
+
     </uib-tabset>
 
 

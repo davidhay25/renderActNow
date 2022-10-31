@@ -44,9 +44,15 @@
 
       <div class="col-sm-6 col-md-6">
           <table class="table-bordered table">
+            <tr><th>Diagnosis</th><th>Identifier</th><th></th></tr>
             <tr ng-repeat = "cp in arRegimens">
               <td>{{cp.title}}</td>
-              <td>{{cp.id}}</td>
+              <td>
+                <div ng-repeat="ident in cp.identifier">
+                  {{ident.value}}
+                </div>
+
+              </td>
               <td><div class="clickable" ng-click="selectRegimen(cp)">Select</div> </td>
             </tr>
           </table>

@@ -7,9 +7,9 @@ angular.module("anApp")
             $scope.moment = moment
             $scope.anSvc = anSvc
 
-            let extCycleNumber = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-number"
-            let extDoseAdjustReason = "http://clinfhir.com/fhir/StructureDefinition/canshare-dose-adjustment-reason"
-            let extCycleDay = "http://clinfhir.com/fhir/StructureDefinition/canshare-cycle-day"
+            let extCycleNumber = "http://canshare.co.nz/fhir/StructureDefinition/an-cycle-number"
+            let extDoseAdjustReason = "http://canshare.co.nz/fhir/StructureDefinition/an-dose-adjustment-reason"
+            let extCycleDay = "hhttp://canshare.co.nz/fhir/StructureDefinition/an-cycle-day"
 
             let validationServer = "http://hapi.fhir.org/baseR4/"       //where the profiles are
 
@@ -44,8 +44,23 @@ angular.module("anApp")
                     let profileUrl = resource.meta.profile[0]
                     let ar = profileUrl.split('/')
                     $scope.urlToProfile = `${IGRoot}StructureDefinition-${ar[ar.length-1]}.html`
-                    //http://canshare.co.nz/fhir/StructureDefinition/an-medication-administration
+
                 }
+            }
+
+            //used by the API query
+            $scope.executeQuery = function (qry) {
+                delete $scope.input.selectedFromQuery
+                let url = "http://localhost:9092/baseR4/" + qry
+                $http.get(url).then(
+                    function (data) {
+                        $scope.input.queryStatus = data.status
+                        $scope.queryResult = data.data
+                    }, function (err) {
+                        $scope.queryResult = err.data
+                        $scope.input.queryStatus = data.status
+                    }
+                )
             }
 
             $scope.validateFromGraph = function (resource) {
@@ -198,6 +213,10 @@ angular.module("anApp")
                                             let patientId = ar[ar.length-1]
                                             //let patient = data.data.entry[0].resource
                                             console.log(patientId)
+                                            $scope.input.selectedPatientId = patientId
+
+                                            
+                                            
                                             $scope.loadPatient(patientId)
                                             break
                                         default :
@@ -227,8 +246,11 @@ angular.module("anApp")
                     function (regimen) {
                         //pass back the regimen. We cal select the patient as the id's are the same (though could get the patient id from the subject if we need....)
 
-                        $scope.input.selectedPatientId = regimen.id
+                        let patRef = regimen.subject.reference
+                        let ar = patRef.split('/')
 
+                        $scope.input.selectedPatientId = ar[ar.length-1]
+                        //$scope.input.selectedPatientId = patientId
 
                         $scope.loadPatient(regimen.id)
                     })
@@ -617,6 +639,7 @@ angular.module("anApp")
 
 
                         cycle.length = end.diff(start,'days')
+
                         cycle.cycleNumber = getSingleExtension(resource,extCycleNumber,'valueInteger')
 
                         //Get the administrations linked to this cycle
@@ -938,6 +961,7 @@ angular.module("anApp")
                     $scope.chart = new vis.Network(container, vo.graphData, graphOptions);
 
                     $scope.chart.on("click", function (obj) {
+                        delete $scope.graphValidationResults
                         let nodeId = obj.nodes[0];  //get the first node
                         let node = vo.graphData.nodes.get(nodeId);
 

@@ -1,0 +1,51 @@
+<br/>
+<em>Execute an ad-hoc query against the CanShare database - not just this patient. For advanced users.
+Knowledge of the <a href="http://hl7.org/fhir/search.html" target="_blank">FHIR REST API</a> is needed.
+</em>
+<br/><br/>
+<div class="row">
+    <div class="col-md-10">
+        <input ng-model="input.query"
+               placeholder="Just the query - eg CarePlan?subject=1"
+               type="text" class="form-control"/>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary" ng-click="executeQuery(input.query)">Execute</button>
+    </div>
+</div>
+<br/><br/>
+
+<div ng-show="input.queryStatus" class="pull-right"><span class="badge">Query status: {{input.queryStatus}}</span></div>
+<uib-tabset>
+    <uib-tab heading="Response Json">
+        <pre>{{queryResult | json}}</pre>
+    </uib-tab>
+    <uib-tab>
+        <uib-tab-heading>Entries <span class="badge">{{queryResult.entry.length}}</span></uib-tab-heading>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group">
+                    <div ng-class="{'list-group-item':true,listItemSelected:input.selectedFromQuery.id == entry.resource.id}"
+                         style="cursor: pointer"
+                         ng-click="input.selectedFromQuery = entry.resource"
+                         ng-repeat="entry in queryResult.entry">
+                        {{entry.resource.resourceType}}/{{entry.resource.id}}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <pre>{{input.selectedFromQuery | json}}</pre>
+
+
+            </div>
+        </div>
+
+    </uib-tab>
+
+</uib-tabset>
+
+
+
+
+
+

@@ -39,7 +39,7 @@ function createUUID() {
 
 let identifierRoot = "http://mosaic.com/"       //common root for all identifiers...
 
-let countToImport = 15
+let countToImport = 50
 
 //let serverBase = null       //Assumed to be the transaction endpoint of the target server. Will upload if this server supplied
 let serverBase = "http://localhost:9092/baseR4"
