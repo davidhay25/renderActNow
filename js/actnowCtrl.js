@@ -51,7 +51,9 @@ angular.module("anApp")
             //used by the API query
             $scope.executeQuery = function (qry) {
                 delete $scope.input.selectedFromQuery
-                let url = "http://localhost:9092/baseR4/" + qry
+                //let url = "http://localhost:9092/baseR4/" + qry
+                let url = "/proxy?url=" + "http://localhost:9092/baseR4/" + qry
+
                 $http.get(url).then(
                     function (data) {
                         $scope.input.queryStatus = data.status

@@ -8,6 +8,22 @@ let serverRoot;
 function setup(app,sr) {
     serverRoot = sr
 
+
+    app.get('/proxy',async function(req,res) {
+
+        let url = req.query.url
+        console.log(url)
+        try {
+            let results = await axios.get(url)      //get the first
+            console.log(results.data)
+
+            res.send(results.data)
+        } catch (ex) {
+            res.status(404).send("The url could not be loaded")
+        }
+    })
+
+
     app.post('/an/validate',function (req,res) {
         let resource = req.body
         let url = `http://hapi.fhir.org/baseR4/${resource.resourceType}/$validate`
