@@ -20,9 +20,18 @@ const actnowEndpointModule = require("./serverModuleActNowEndpoint");
 const bodyParser = require('body-parser')
 
 //sharing the same fhir server as the rest on canshare for dev (but not prod)
-let serverRoot = "http://localhost:9092/baseR4/"
+//tmep for testinglet serverRoot = "http://localhost:9092/baseR4/"
+
+let serverRoot = "http://localhost:9876/fhir/"
 
 
+let systemConfig
+try {
+    systemConfig = require("./artifacts/systemConfig.json")
+   // if (systemConfig)
+} catch (ex) {
+    systemConfig = {type:"design","publicServer":"https://canshare.co.nz",port:9090,serverRoot : "http://localhost:9099/baseR4/"}
+}
 
 var express = require('express');
 var app = express();

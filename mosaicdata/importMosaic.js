@@ -42,7 +42,8 @@ let identifierRoot = "http://mosaic.com/"       //common root for all identifier
 let countToImport = 50
 
 //let serverBase = null       //Assumed to be the transaction endpoint of the target server. Will upload if this server supplied
-let serverBase = "http://localhost:9092/baseR4"
+//let serverBase = "http://localhost:9092/baseR4"
+let serverBase = "http://localhost:9876/fhir"
 
 
 //let validationServer = "https://r4.ontoserver.csiro.au/fhir/"
