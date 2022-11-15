@@ -1,13 +1,55 @@
 
-
+let axiosConfig = {};       //will contain the access token (if reading from smile)
 
 const axios = require("axios");
 //let serverRoot = "localhost:9092"
 
 let serverRoot;
-function setup(app,sr) {
-    serverRoot = sr
+function setup(app,initialServerRoot,serverHash) {
+    serverRoot = initialServerRoot
 
+    //This is the endpoint that allows a server to be selected
+    //Right now, there are only a couple of servers supported - 'local' and 'smile'. Can enhance later if needed
+
+    app.post('/setServer/:server',async function(req,res) {
+        let server = req.params.server
+        console.log(server)
+
+        switch (server) {
+            case "smile" :
+                //need to get the access token
+                axiosConfig = {}       //clear the current one
+                let at = await getAccessToken()
+                console.log(at)
+                if (at.error) {
+                    //There was an error - just return it
+                    res.status(500).send(at.error)
+                    return
+                }
+
+                if (at['access_token']) {
+                    axiosConfig.headers = {Authorization: 'Bearer ' + at['access_token']}
+                    serverRoot = serverHash['smile']
+                    res.send("Server changed to "+ server)
+                } else {
+                    //there isn't an access token - weird...
+                    res.status(500).send("Unable to get access token")
+                }
+
+                break
+            case "local" :
+                axiosConfig.headers = {Authorization: "dhay"}
+                break
+            default :
+                axiosConfig = {}      //assume that any other server (local at the moment) doesn't need an access token
+                break
+        }
+
+
+        //res.send()
+
+
+    })
 
     app.get('/proxy',async function(req,res) {
 
@@ -18,7 +60,7 @@ function setup(app,sr) {
 
         console.log(qry)
         try {
-            let results = await axios.get(qry)      //get the first
+            let results = await axios.get(qry,axiosConfig)      //get the first
             console.log(results.data)
 
             res.send(results.data)
@@ -27,11 +69,10 @@ function setup(app,sr) {
         }
     })
 
-
     app.post('/an/validate',function (req,res) {
         let resource = req.body
         let url = `http://hapi.fhir.org/baseR4/${resource.resourceType}/$validate`
-        axios.post(url,resource)
+        axios.post(url,resource,axiosConfig)
             .then(function (response){
                 //console.log(response.data)
                 res.status(response.status).json(response.data)
@@ -52,6 +93,7 @@ function setup(app,sr) {
         let url = serverRoot + "Patient/" + req.params.patientId + "/$everything"
 
         console.log('ev',url)
+
         let bundle = await getBundle(url)
 
         res.json(bundle)
@@ -69,10 +111,10 @@ function setup(app,sr) {
     app.get('/an/getCarePlansWithCode/:code',async function(req,res){
         let url = serverRoot + "CarePlan?condition.code="+ req.params.code
 
-console.log(url)
-        let config = {headers:{Authorization:'dhay'}}
+//console.log(url)
+        //axiosConfig.headers = {Authorization: at['access_token']}
         try {
-            results = await axios.get(url,config)  //should be a single resource
+            results = await axios.get(url,axiosConfig)  //should be a single resource
             res.json(results.data)
 
         } catch (ex) {
@@ -83,10 +125,10 @@ console.log(url)
     //get a single Q from the forms server
     app.get('/an/getQ/:id',async function(req,res){
         let url = "https://canshare.co.nz/ds/fhir/Questionnaire/" + req.params.id
-        let config = {headers:{Authorization:'dhay'}}
+       // let config = {headers:{Authorization:'dhay'}}
 
         try {
-            results = await axios.get(url,config)  //should be a single resource
+            results = await axios.get(url,axiosConfig)  //should be a single resource
             res.json(results.data)
 
         } catch (ex) {
@@ -99,10 +141,10 @@ console.log(url)
 
         let url = "https://canshare.co.nz/ds/fhir/Questionnaire?url=" + req.query.url
         console.log(url)
-        let config = {headers:{Authorization:'dhay'}}
+        //let config = {headers:{Authorization:'dhay'}}
 
         try {
-            results = await axios.get(url,config)  //should be a single resource
+            results = await axios.get(url,axiosConfig)  //should be a single resource
             let bundle = results.data
             //todo need to check if > 1
             if (bundle.entry && bundle.entry.length > 0) {
@@ -126,10 +168,10 @@ console.log(url)
 
         console.log(qry)
 
-        let config = {headers:{Authorization:'dhay'}}
+       // let config = {headers:{Authorization:'dhay'}}
 
         try {
-            results = await axios.get(qry,config)  //should be a single resource
+            results = await axios.get(qry,axiosConfig)  //should be a single resource
             res.json(results.data)
 
         } catch (ex) {
@@ -192,9 +234,6 @@ console.log(url)
 
     })
 
-
-
-
     //get a summary of ann conditions by disease type from the local server. returns a hash keyed by disease
     //todo this is quite inefficient and will not scale when all mosaic data is imported. If useful, have a better strategy -
     //eg don't use getBundle() - incorporate paging in the query and save the results (Group or List) for
@@ -233,15 +272,26 @@ console.log(url)
     })
 
     async function getBundle(url) {
-        let results = await axios.get(url)      //get the first
+        console.log('url',url)
+        let results
+        try {
+            results = await axios.get(url,axiosConfig)      //get the first
+        } catch (ex) {
+            console.log(ex)
+            //todo - if there was an error contacting the server then return an empty bundle
+            //might want better error handling eventually...
+            return {entry:[]}
+        }
+
         let bundle = results.data       //the first bundle
 
         let nextPageUrl = getNextPageUrl(bundle)
-        //console.log('next ' + nextPageUrl)
+
 
         while (nextPageUrl) {
+            //console.log('next ' + nextPageUrl)
             try {
-                results = await axios.get(nextPageUrl)
+                results = await axios.get(nextPageUrl,axiosConfig)
                 let nextBundle = results.data
 
                 //append the new bundles data to the first bundle
@@ -262,6 +312,49 @@ console.log(url)
         return bundle
 
     }
+
+    app.get('/an/check',async function(req,res){
+
+        let at = await getAccessToken()
+        //console.log('at',at)
+        if (at['access_token']) {
+            //console.log(at['access_token'])
+            try {
+                let config = {headers:{Authorization:'Bearer ' + at['access_token']}}
+                let resp = await axios.get("https://hof.smilecdr.com/fhir_request/Condition",config)
+                res.json(resp.data)
+            } catch (ex) {
+                console.log('fail',ex)
+                res.status(500).json(ex)
+            }
+        } else {
+            res.status(500).json(at)
+        }
+
+    })
+
+    let getAccessToken = async function () {
+        return new Promise((res, rej) => {
+
+            let authEndpoint = "https://hof.smilecdr.com/smartauth/oauth/token"
+            let qry = "grant_type=client_credentials&client_id=actnow_ri&client_secret=actnowtesting"
+            let config = {headers: {Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'}}
+
+            axios.post(authEndpoint, qry, config)
+                .then(function (response) {
+                    //console.log('ok',response.data)
+                    res(response.data)
+                })
+                .catch(function (err) {
+                    console.log('err', err.response.status)
+                    res({error: "Unable to get access token"})
+
+                })
+        })
+    }
+
+
+
 
 
 

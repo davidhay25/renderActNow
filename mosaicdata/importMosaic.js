@@ -39,11 +39,14 @@ function createUUID() {
 
 let identifierRoot = "http://mosaic.com/"       //common root for all identifiers...
 
-let countToImport = 50
+let countToImport = 100
 
 //let serverBase = null       //Assumed to be the transaction endpoint of the target server. Will upload if this server supplied
-//let serverBase = "http://localhost:9092/baseR4"
-let serverBase = "http://localhost:9876/fhir"
+let serverBase = "http://localhost:9092/baseR4"
+//let serverBase = "http://actnow.canshare.co.nz:9092/baseR4/"
+//let serverBase = "http://localhost:9876/fhir"
+
+//let serverBase = "https://hof.smilecdr.com/fhir_request/"
 
 
 //let validationServer = "https://r4.ontoserver.csiro.au/fhir/"
@@ -720,7 +723,7 @@ function makeMedAdmin(ar,patient,cp) {
             obs.subject = {reference:"urn:uuid:"+patient.id}
             // not really this relationship obs.partOf = [{reference:"urn:uuid:"+admin.id}]
             obs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar)}]
-            obs.focus = [{reference:"urn:uuid:"+cp.id}]
+            obs.basedOn = [{reference:"urn:uuid:"+cp.id}]
             obs.code = {text:"BSA",coding:[{system:"http://loinc.org",code:"8277-6"}]}         //todo confirm code for BSA
             obs.valueQuantity = {unit:"m2",value: parseFloat(ar[18]) ,system:"http://unitsofmeasure.org"}
             obs.effectiveDateTime = admin.effectivePeriod.start      //todo - this is an assumption
@@ -735,7 +738,7 @@ function makeMedAdmin(ar,patient,cp) {
             obs.identifier = [{system:identifierRoot + "Observation",value:makeHash(ar)}]
             obs.subject = {reference:"urn:uuid:"+patient.id}
             //obs.partOf = [{reference:"urn:uuid:"+admin.id}]
-            obs.focus = [{reference:"urn:uuid:"+cp.id}]
+            obs.basedOn = [{reference:"urn:uuid:"+cp.id}]
             obs.code = {text:"Creatinine Clearance",coding:[{system:"http://loinc.org",code:"13449-4"}]}         //todo confirm code for CR
             obs.valueQuantity = {value:parseFloat(ar[17])}              //todo check units
             obs.effectiveDateTime = admin.effectivePeriod.start      //todo - this is an assumption

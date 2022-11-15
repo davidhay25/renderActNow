@@ -15,18 +15,34 @@ angular.module("anApp")
 
             $scope.fhirSpecRoot = "http://hl7.org/fhir/"
 
+            $scope.input.server = "local"
+            $scope.selectServer = function (server) {
+                console.log(server)
+                $http.post(`/setServer/${server}`).then(
+                    function(data){
+                        loadPatients()
+                        alert(`Server has been set to ${server}`)
+                    }, function(err) {
+                        alert(err.data + ". You should re-load the page and use the local server.")
+                    }
+                )}
+
             //load all patients for dropdown select. Note that a single patient can have multiple resources - use identifier to combine
-            $http.get("/ds/fhir/Patient").then(
-                function(data) {
-                    $scope.allPatientIds = []
-                    data.data.entry.forEach(function(entry){
-                        $scope.allPatientIds.push(entry.resource.id)
+            function loadPatients() {
+                $http.get("/ds/fhir/Patient").then(
+                    function(data) {
+                        $scope.allPatientIds = []
+                        data.data.entry.forEach(function(entry){
+                            $scope.allPatientIds.push(entry.resource.id)
+                        })
+
+
+                        $scope.input.selectedPatientId = $scope.allPatientIds[0]
+                        $scope.loadPatient($scope.input.selectedPatientId)
                     })
+            }
+            loadPatients()
 
-
-                    $scope.input.selectedPatientId = $scope.allPatientIds[0]
-                    $scope.loadPatient($scope.input.selectedPatientId)
-                })
 
             $scope.selectCycleFromSummary = function(cycle) {
                 $scope.selectedCycleFromSummary = cycle
@@ -174,6 +190,68 @@ angular.module("anApp")
             }
 
 
+            $scope.selectByNhi = function() {
+
+
+                $uibModal.open({
+                    backdrop: 'static',      //means can't close by clicking on the backdrop.
+                    keyboard: false,       //same as above.
+                    //size: 'sm',
+                    templateUrl: 'modalTemplates/selectByNhi.html',
+                    controller: function ($scope) {
+                        $scope.input = {}
+                        //$scope.input.system = "http://clinfhir.com"
+                        //$scope.input.value = "patient5"
+                        $scope.select = function () {
+                            let vo = {system:$scope.input.system,value:$scope.input.value}
+                            $scope.$close(vo)
+                        }
+                    }
+                }).result.then(
+                    function (vo) {
+                        let nhi = vo.value
+                        let system = vo.system
+
+                        if (nhi) {
+                            let qry
+                            if (system) {
+                                qry = `/an/fhir/Patient?identifier=${system}|${nhi}`
+                            } else {
+                                qry = `/an/fhir/Patient?identifier=${nhi}`
+                            }
+
+                            //let qry = `/an/fhir/Patient?identifier=${nhi}`
+                            $http.get(qry).then(
+                                function(data){
+                                    if (data.data && data.data.entry) {
+                                        if (data.data.entry.length == 1) {
+
+
+                                            $scope.input.selectedPatientId = data.data.entry[0].resource.id
+                                            $scope.loadPatient($scope.input.selectedPatientId)
+                                        } else {
+                                            alert(`There were ${data.data.entry.length} patients with identifiers matching ${system}|${nhi}. This shouldn't happen!`)
+                                        }
+                                    } else {
+                                        alert(`There were no patients with identifiers matching ${system}|${nhi}`)
+                                    }
+                                }, function(){
+                                    alert(`There were no patients with identifiers matching ${system}|${nhi}`)
+                                }
+                            )
+
+                        }
+                    }
+                )
+
+               // let nhi = prompt("What is the NHI (Patient identifier)")
+                //let system = "" // "https://standards.digital.health.nz/ns/nhi-id"
+
+
+
+
+
+            }
 
             //select patient on diagnosis
             $scope.selectByRegimenIdentifier = function() {
@@ -196,7 +274,7 @@ angular.module("anApp")
                         console.log(vo)
                         let qry = `/ds/fhir/CarePlan?identifier=${vo.value}`
                         if (vo.system) {
-                            let qry = `/ds/fhir/CarePlan?identifier=${vo.system}|${vo.value}`
+                            qry = `/ds/fhir/CarePlan?identifier=${vo.system}|${vo.value}`
                         }
                         //let qry = `/ds/fhir/Patient?identifier=${vo.system}|${vo.value}`
 
@@ -312,7 +390,7 @@ angular.module("anApp")
 
                 delete  $scope.selectedCycleFromSummary
 
-                $scope.loadReports()       //todo add patient filter
+                //$scope.loadReports()       //todo add patient filter
 
 
                 let url1 = `/an/fhir/Patient/${id}/$everything`
@@ -364,7 +442,7 @@ angular.module("anApp")
             $scope.selectResourceFromList = function (resource) {
                 $scope.selectedResourceFromList = resource
             }
-            $scope.loadReports = function (patientIdentifier) {
+            $scope.loadReportsDEP = function (patientIdentifier) {
                 //load all the reports for a patient. Right now, this is all reports...
                 //note that is real life, these would actulally be DiagnosticReports with observations... (but the data should be the same)
                 //todo may be better to create a specific service in structuredpath for this

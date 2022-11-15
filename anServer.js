@@ -19,12 +19,16 @@ const actnowEndpointModule = require("./serverModuleActNowEndpoint");
 
 const bodyParser = require('body-parser')
 
-//sharing the same fhir server as the rest on canshare for dev (but not prod)
+//the initial server...
 let serverRoot = "http://localhost:9092/baseR4/"
+//let serverRoot = "https://hof.smilecdr.com/fhir_request/"
+
+let serverHash = {"local":"http://localhost:9092/baseR4/","smile":"https://hof.smilecdr.com/fhir_request/"}
+
 
 //let serverRoot = "http://localhost:9876/fhir/"
 
-
+/*
 let systemConfig
 try {
     systemConfig = require("./artifacts/systemConfig.json")
@@ -32,14 +36,18 @@ try {
 } catch (ex) {
     systemConfig = {type:"design","publicServer":"https://canshare.co.nz",port:9090,serverRoot : "http://localhost:9099/baseR4/"}
 }
+*/
 
 var express = require('express');
+const axios = require("axios");
 var app = express();
 
 app.use(bodyParser.json({limit:'50mb',type:['application/json+fhir','application/fhir+json','application/json']}))
 
-actnowModule.setup(app,serverRoot)
-actnowEndpointModule.setup(app,serverRoot)
+actnowModule.setup(app,serverRoot,serverHash)
+// - not sure if we're using this - and in any case move finctions to the other module...actnowEndpointModule.setup(app,serverRoot)
+
+
 
 app.use('/', express.static(__dirname,{index:'/actnow.html'}));
 
