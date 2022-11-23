@@ -64,10 +64,14 @@ let patientCategory = {coding:[{system:"http://unknown.org",code:"patientCP"}]}
 //profiles
 let profRegimenCarePlan = "http://canshare.co.nz/fhir/StructureDefinition/an-careplan-regimen"
 let profCycleCarePlan = "http://canshare.co.nz/fhir/StructureDefinition/an-careplan-cycle"
+let profPatientCarePlan = "http://canshare.co.nz/fhir/StructureDefinition/an-careplan-patient"
+
 let profMedicationAdministration = "http://canshare.co.nz/fhir/StructureDefinition/an-medication-administration"
 let profMedicationRequest = "http://canshare.co.nz/fhir/StructureDefinition/an-medication-request"
 let profCondition = "http://canshare.co.nz/fhir/StructureDefinition/an-condition"
 let profHistology = "http://canshare.co.nz/fhir/StructureDefinition/an-histology"
+let profPatient = "http://canshare.co.nz/fhir/StructureDefinition/an-patient"
+
 
 //profiles for Observations
 let profBsa = "http://canshare.co.nz/fhir/StructureDefinition/an-bsa"
@@ -166,6 +170,8 @@ async function insertDataOneRegimen(regimenId) {
     //If a patient has multiple regimens in the csv, then the patient patient care plan will have the same identifier, so should work ok
     //regimenId should be unique within the csv file
     let patient = {resourceType:"Patient",name:[{text:"John Doe - " + regimenId}]} //,id:regimenId
+
+    addProfile(patient,profPatient)
     patient.id = createUUID()
     patient.identifier = [{system:identifierRoot + "Patient",value:patientIdentifier}]
     addNarrative(patient,"Identifier: " + patientIdentifier)
@@ -298,6 +304,7 @@ function makeRegimenCP(vo,patient) {
 
     //patient level careplan. Make the identifier specific to the patient not the regimen - that way there will only be one patient CP
     let cpPatient = {resourceType:"CarePlan",id:'pat-' + ar[0],status:'active',intent:'order'}
+    addProfile(cpPatient,profPatientCarePlan)
     cpPatient.id = createUUID()
     cpPatient.identifier = [{system: identifierRoot+"CarePlan",value:'pat-' + patient.identifier[0].value}]
     // cpPatient.identifier = [{system: identifierRoot+"CarePlan",value:'pat-' + ar[0]}]
@@ -319,8 +326,14 @@ function makeRegimenCP(vo,patient) {
 
     //there are a number of required extensions
     cp.extension = []
-    cp.extension.push({url:extTreatmentIntent,valueCodeableConcept: {text:ar[3]}})     //intent of treatment
-    cp.extension.push({url:extRegimenType,valueCodeableConcept: {text:ar[4]}})     //regimen type
+    if (ar[3]) {
+        cp.extension.push({url:extTreatmentIntent,valueCodeableConcept: {text:ar[3]}})     //intent of treatment
+    }
+    if (ar[4]) {
+        cp.extension.push({url:extRegimenType,valueCodeableConcept: {text:ar[4]}})     //regimen type
+    }
+
+
 
     cp.title = ar[4]
     cp.subject = {reference: "urn:uuid:" +patient.id}

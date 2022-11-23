@@ -15,6 +15,8 @@ if (! port) {
 //https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04
 
 const actnowModule = require("./serverModuleActNow");
+
+//has the validate & bundle processing
 const actnowEndpointModule = require("./serverModuleActNowEndpoint");
 
 const bodyParser = require('body-parser')
@@ -45,7 +47,7 @@ var app = express();
 app.use(bodyParser.json({limit:'50mb',type:['application/json+fhir','application/fhir+json','application/json']}))
 
 actnowModule.setup(app,serverRoot,serverHash)
-// - not sure if we're using this - and in any case move finctions to the other module...actnowEndpointModule.setup(app,serverRoot)
+actnowEndpointModule.setup(app,serverRoot)
 
 
 

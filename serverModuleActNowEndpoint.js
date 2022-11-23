@@ -63,6 +63,8 @@ function setup(app,sr) {
     function validateTransaction(bundle) {
         return new Promise(function(resolve,reject){
 
+            let urlPattern = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/gi;
+
             if (!bundle || !bundle.entry || (bundle.entry.length == 0)) {
                 let oo = {resourceType:"OperationOutcome",issue:[]}
                 oo.issue.push({severity:'fatal',code:'required',diagnostics:"Must be a bundle with one or more entries"})
@@ -75,57 +77,132 @@ function setup(app,sr) {
             //but once the profiles are complete, it will be more comprehensive and some of the manual tests below
             //can be removed. We hard code the validation server 'cause that is where we'll place the profiles
             //let validationServer = "http://home.clinfhir.com:8054/baseR4/"
-            let validationServer = "http://actnow.canshare.co.nz:9092/baseR4/"
 
-            axios.post(validationServer + "Bundle/$validate",bundle).then(
-                function(response) {
-                    //the validation was successful
-                    bundle.entry.forEach(function (entry,inx) {
-                        let resource = entry.resource
-                        if (! resource) {
-                            oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is missing the resource`})
-                        } else {
-                            //check that the identifier is present and correct
-                            if (! resource.identifier) {
-                                oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is missing the identifier`})
+
+
+            /* Check the following from the 'architecture.md' file...
+            *     * All resources have a profile conformance claim to a known profile appropriate for that resource type
+                * The system values in the resources match that assigned to the data source
+                * All updates are conditional updates or creates
+                * */
+
+            //The following are validation that can't be picked up in the standard profile validation
+            bundle.entry.forEach(function (entry,inx) {
+
+                //check that there is a resource
+                let resourceType
+                if (! entry.resource) {
+                    oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1}  is missing the resource`})
+                } else {
+                    //there is a resource - so we can check the resource specific things
+                    let resource = entry.resource
+                    resourceType = resource.resourceType
+
+                    //check that there is a profile conformance claim. For now, just look for one - may want to be a bit more specific later on
+                    if ( ! resource.meta || ! resource.meta.profile) {
+                        oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} (${resourceType}) is missing the conformance claim (meta.profile)`})
+                    }
+
+                }
+
+
+                //check that there is a fullUrl
+                if (! entry.fullUrl) {
+                    oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} (${resourceType}) is missing the fullUrl`})
+                } else {
+                    //the url needs to be a uuid
+                    let fullUrl = entry.fullUrl
+                    if (fullUrl.indexOf("urn:uuid:") == -1) {
+                        oo.issue.push({severity:'fatal',code:'required',diagnostics:`The fullUrl of entry #${inx+1} (${resourceType}) does not start with urn:uuid:`})
+                    } else {
+                        //so it starts correctly, but it the rest a uuid?
+                        fullUrl = fullUrl.replace("urn:uuid:","")
+                        if (! fullUrl.match(urlPattern)) {  //https://www.fwait.com/how-to-check-if-string-is-a-uuid-in-javascript/
+                            oo.issue.push({severity:'fatal',code:'required',diagnostics:`The fullUrl of entry #${inx+1} is not a uuid`})
+                        }
+                    }
+
+                }
+
+                //check that this is a conditional update.
+                let hasCU = true
+                if (entry.request) {
+                    if (entry.request.method !== 'PUT' || ! entry.request.url) {
+                        hasCU = false
+                    }
+
+                } else {
+                    hasCU = false
+                }
+
+                if (! hasCU) {
+                    oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} (${resourceType}) is not a conditional update`})
+                }
+
+            })
+
+            if (oo.issue.length > 0) {
+                //there was at least one issue found in the manual validation so reject...
+                reject(oo)
+                return
+            } else {
+                //so it passed the manual tests. Now for a more comprehensive test...
+
+                //let validationServer = "http://actnow.canshare.co.nz:9092/baseR4/"
+                let validationServer = "http://hapi.fhir.org/baseR4/"
+
+                axios.post(validationServer + "Bundle/$validate",bundle).then(
+                    function(response) {
+                        //the validation was successful
+                        /*
+                        bundle.entry.forEach(function (entry,inx) {
+                            let resource = entry.resource
+                            if (! resource) {
+                                oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is missing the resource`})
                             } else {
-                                //the identifier is present - check that there is a system and a value.
-                                //all resources must hsve an identifier
-                                //todo - ? check system is known
-                                resource.identifier.forEach(function (identifier) {
-                                    if (! identifier.system || ! identifier.value) {
-                                        oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is missing the identifier system or value`})
-                                    }
-                                })
+                                //check that the identifier is present and correct
+                                if (! resource.identifier) {
+                                    oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is missing the identifier`})
+                                } else {
+                                    //the identifier is present - check that there is a system and a value.
+                                    //all resources must hsve an identifier
+                                    //todo - ? check system is known
+                                    resource.identifier.forEach(function (identifier) {
+                                        if (! identifier.system || ! identifier.value) {
+                                            oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is missing the identifier system or value`})
+                                        }
+                                    })
 
-                            }
-
-                            if (resource.type == 'CarePlan'  ) {
-
-                                if (! resource.category) {
-                                    oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is missing the category`})
                                 }
 
-                            }
+                                if (resource.type == 'CarePlan'  ) {
 
-                            //check that this is a conditional update
-                            let hasCU = true
-                            if (entry.request) {
-                                if (entry.request.method !== 'PUT' || ! entry.request.url) {
+                                    if (! resource.category) {
+                                        oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is missing the category`})
+                                    }
+
+                                }
+
+                                //check that this is a conditional update
+                                let hasCU = true
+                                if (entry.request) {
+                                    if (entry.request.method !== 'PUT' || ! entry.request.url) {
+                                        hasCU = false
+                                    }
+
+                                } else {
                                     hasCU = false
                                 }
 
-                            } else {
-                                hasCU = false
+                                if (! hasCU) {
+                                    oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is not a conditional update`})
+                                }
                             }
+                        })
+                        */
 
-                            if (! hasCU) {
-                                oo.issue.push({severity:'fatal',code:'required',diagnostics:`entry #${inx+1} is not a conditional update`})
-                            }
-                        }
-                    })
-                    resolve(oo)
-                }).catch(function(err){
+                        resolve(oo)
+                    }).catch(function(err){
                     //the validation failed
                     if (err.response) {
                         reject(err.response.data)
@@ -136,23 +213,11 @@ function setup(app,sr) {
 
                 })
 
-/*
-            try {
-                let config = {headers:{'content-type':'application/json+fhir'}}
-                let vResult =
-                //if it succeeds that there comments and informational only. We'll ignore those for now...
-            } catch (ex) {
-                //this means that there was one or more failures. Return the errors to the caller and halt processing
-                if (ex.response) {
-                    res.status(ex.response.status).json(ex.response.data)
-                } else {
-                    oo.issue.push({severity:'fatal',code:'required',diagnostics:`There were validation failures, but no response was returned`})
-                    res.status(500).json(oo)
-                }
-                return
             }
 
-*/
+
+
+
 
         })
 
