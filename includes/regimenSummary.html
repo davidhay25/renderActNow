@@ -74,7 +74,8 @@
                 <table class="table table-bordered">
                     <tr><th>Number</th><th>Status</th><th>Start</th><th>End</th><th>Length</th><th>Planned</th><th>Id</th></tr>
                     <tr ng-repeat="cycle in regimen.cycles">
-                        <td><span class="clickable" ng-click="selectCycleFromSummary(cycle)">Cycle #{{cycle.meta.cycleNumber}}</span></td>
+                        <td ng-class="{selectedCell:selectedCycleFromSummary == cycle}"><span ng-class="{clickable:true}"
+                                  ng-click="selectCycleFromSummary(cycle)">Cycle #{{cycle.meta.cycleNumber}}</span></td>
                         <td>{{cycle.resource.status}}</td>
                         <td>{{cycle.resource.period.start}}</td>
                         <td>

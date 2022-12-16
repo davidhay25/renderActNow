@@ -385,11 +385,17 @@ angular.module("anApp")
             $scope.loadPatient = function(id) {
                 $scope.showWaiting = true
 
+                $('#graph').empty()
+
+
+                //return
                 //if
 
 
-                delete  $scope.selectedCycleFromSummary
-
+                delete $scope.allResourcesBundle
+                delete $scope.resourcesList
+                delete $scope.selectedCycleFromSummary
+                delete $scope.allEntries
                 //$scope.loadReports()       //todo add patient filter
 
 
@@ -538,7 +544,7 @@ angular.module("anApp")
                 })
             }
 
-            //only 1 per patient at present....(and likely to remain if we have a specific patient resource per regimen
+            //potentially multiple per patient at present....
             function createRegimensArray() {
                 $scope.arRegimens = []
                 $scope.allEntries.forEach(function (entry) {
@@ -778,7 +784,7 @@ angular.module("anApp")
                 })
 
                 $scope.arCycles.sort(function(a,b){
-                    if (a.period.start > b.period.start) {
+                    if ((a.period && a.period.start) > (b.period && b.period.start)) {
                         return 1
                     } else {
                         return -1
