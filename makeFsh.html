@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Fsh</title>
+
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+    <script src="js/libs/angular.min1-5.js"></script>
+    <script>
+        angular.module("anApp",[])
+
+    </script>
+
+    <script>
+        angular.module("anApp")
+            .controller('convertCtrl',
+
+                function ($scope) {
+                    $scope.input = {hw:"hw"}
+
+                    $scope.convert = function () {
+                        //console.log($scope.input.text)
+
+                        let conv = ""
+                        let lines = $scope.input.text.split('\n')
+
+                        lines.forEach(function (lne1) {
+                            let lne = lne1.trim()
+                            let ar = lne.split("\t")
+
+                            let code = ar.pop()
+                            let display = ar.join(" ")
+
+                            let fsh = `* $snomed#${code} "${display}"`
+                            conv += fsh + "\r\n"
+                            console.log(fsh)
+                        })
+
+                        $scope.input.fsh = conv
+
+
+
+
+
+
+
+                    }
+                }
+            )
+    </script>
+
+
+</head>
+<body>
+
+    <div  ng-app="anApp"  ng-controller = "convertCtrl">
+        <div class="row">
+            <div class="col-md-6">
+                <br/>
+                Create FSH from Spreadsheet. Paste 2 cols from SS - FSN & SCTID
+                <br/>
+                <textarea class="form-control" rows="20"  ng-model="input.text"></textarea>
+                <button class="btn btn-link"  ng-click = "convert()">Convert</button>
+            </div>
+            <div class="col-md-6">
+                <textarea class="form-control" rows="20"  ng-model="input.fsh"></textarea>
+            </div>
+
+        </div>
+    </div>
+
+
+</body>
+</html>
