@@ -44,6 +44,8 @@ angular.module("anApp")
             loadPatients()
 
 
+
+
             $scope.selectCycleFromSummary = function(cycle) {
                 $scope.selectedCycleFromSummary = cycle
                 delete $scope.input.csSelectedResource
